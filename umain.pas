@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, uraycaster, ugame
+  Classes, uraycaster, ugame, ugraphic
   { you can add units after this };
 
 begin
