@@ -30,7 +30,7 @@ implementation
   function TMap.ReadFromFile: IntGrid;
   var
     fin: text;
-    i,j: integer;
+    j: integer;
     s: string;
   begin
     assign(fin,MapFileName);
@@ -41,18 +41,18 @@ implementation
       readln(fin,s);
       setlength(Result[high(Result)],length(s));
       for j := low(s) to high(s) do
-        Result[high(Result),j-1] := StrToInt(s[j]);
+        Result[high(Result),j-1] := StrToIntDef(s[j],0);
     end;
     close(fin);
-end;
+  end;
 initialization
 
-Game := TGame.Create;
+  Game := TGame.Create;
 
-GameMap := TMap.Create;
-GameMap.ReadFromFile;
+  GameMap := TMap.Create;
+  GameMap.ReadFromFile;
 
-Game.VPlayer := FloatPoint(5,7);
-Game.VDirection := FloatPoint(-1,0);
+  Game.VPlayer := FloatPoint(5,7);
+  Game.VDirection := FloatPoint(-1,0);
 end.
 
