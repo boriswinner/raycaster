@@ -9,56 +9,50 @@ uses
 //GraphMath only for TFLoatPoint, better to write own type
 
 type
+  IntGrid = array of array of integer;
+
   TGame = class
-    VPlayer, VDirection, VPlane: TFloatPoint; //vectors
+    VPlayer, VDirection: TFloatPoint; //vectors
   end;
 
   TMap = class
     private
-      //TODO: dynamic width & height, custom map name & extension
-      const
-        MapWidth = 10;
-        MapHeight = 10;
-        MapFileName = 'map.txt';
-
-      type MapArray = array[1..MapWidth,1..MapHeight] of integer;
+      const MapFileName = 'map.txt';
     public
-        var
-          Map: MapArray;
-
-        function ReadFromFile: MapArray;
+      Map: IntGrid;
+      function ReadFromFile: IntGrid;
   end;
 
 var
   Game: TGame;
   GameMap: TMap;
 implementation
-  function TMap.ReadFromFile: MapArray;
+  function TMap.ReadFromFile: IntGrid;
   var
     fin: text;
-    i,j: integer;
+    j: integer;
     s: string;
   begin
     assign(fin,MapFileName);
     reset(fin);
-    for i := 1 to MapHeight do
+    while (not eof(fin)) do
     begin
+      setlength(Result,length(Result)+1);
       readln(fin,s);
-      for j := 1 to MapWidth do
-      begin
-        Result[i,j] := StrToInt(s[j]);
-      end;
+      setlength(Result[high(Result)],length(s));
+      for j := low(s) to high(s) do
+        Result[high(Result),j-1] := StrToIntDef(s[j],0);
     end;
-end;
+    close(fin);
+  end;
 initialization
 
-Game := TGame.Create;
+  Game := TGame.Create;
 
-GameMap := TMap.Create;
-GameMap.ReadFromFile;
+  GameMap := TMap.Create;
+  GameMap.ReadFromFile;
 
-Game.VPlayer := FloatPoint(5,7);
-Game.VDirection := FloatPoint(-1,0);
-Game.VPlane := FloatPoint(0,0.66);
+  Game.VPlayer := FloatPoint(5,7);
+  Game.VDirection := FloatPoint(-1,0);
 end.
 

@@ -46,13 +46,9 @@
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="umap.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit2>
-      <Unit3>
         <Filename Value="ugame.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit3>
+      </Unit2>
       <Unit4>
         <Filename Value="ugraphic.pas"/>
         <IsPartOfProject Value="True"/>
