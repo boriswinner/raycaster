@@ -5,7 +5,7 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugame;
+  Classes, SysUtils, Math, GraphMath, Graph, graphics, ugame;
 
 type
   TRaycaster = class
@@ -28,17 +28,24 @@ implementation
     MapPos,step : TPoint;
     perpWallDist: double;
     hit,side: boolean;//NS or EW side
+    LineColor: TColor;
+    TempColor: word;
   begin
     for ScreenX := 0 to ScreenWidth do
     begin
       VCameraX := 2*ScreenX/ScreenWidth - 1;
+      if (VCameraX = 0) then
+      begin
+        writeln('ScreenX ',IntToStr(ScreenX));
+        writeln('ScreenWidth  ',IntToStr(ScreenWidth));
+      end;
       RayPos := Game.VPlayer;
       RayDir.x := Game.VDirection.x + VPlane.x * VCameraX;
       RayDir.y := Game.VDirection.y + VPlane.y * VCameraX;
       MapPos.x := floor(RayPos.x);
       MapPos.y := floor(RayPos.y);
-      DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
-      DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
+      DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / max(rayDir.X * rayDir.X,0.001));
+      DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / max(rayDir.Y * rayDir.Y,0.001));
       hit := false;
 
       if (RayDir.x < 0) then
@@ -90,6 +97,20 @@ implementation
       DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
       if (drawEnd >= ScreenHeight) then DrawEnd := ScreenHeight - 1;
 
+      case GameMap.Map[MapPos.X][MapPos.Y] of
+      1:
+        begin
+          LineColor:= clRed;
+          TempColor := 12;
+        end;
+      end;
+      if (side = true) then
+      begin
+        LineColor := clMaroon;
+        TempColor := 4;
+      end;
+      SetColor(TempColor);
+      Line(ScreenX,DrawStart,ScreenX,DrawEnd);
     end;
   end;
 
@@ -99,5 +120,4 @@ initialization
   Raycaster.ScreenWidth := 640;
   Raycaster.ScreenHeight:= 480;
   Raycaster.VPlane := FloatPoint(0,0.66);
-
 end.
