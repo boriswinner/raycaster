@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="umain.pas"/>
         <IsPartOfProject Value="True"/>
@@ -49,10 +49,10 @@
         <Filename Value="ugame.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
-      <Unit4>
+      <Unit3>
         <Filename Value="ugraphic.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit4>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

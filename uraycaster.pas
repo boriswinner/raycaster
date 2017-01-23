@@ -159,7 +159,7 @@ implementation
 initialization
 
   Raycaster := TRaycaster.Create;
-  Raycaster.ScreenWidth := 1280;
-  Raycaster.ScreenHeight:= 1024;
+  Raycaster.ScreenWidth := 1024;
+  Raycaster.ScreenHeight:= 768;
   Raycaster.VPlane := FloatPoint(0,0.66);
 end.
