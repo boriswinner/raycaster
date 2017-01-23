@@ -10,7 +10,7 @@ uses
   Classes, SysUtils, SDL2;
 
 type TColorRGB = class
-  r, g, b: integer;
+  r, g, b: UInt8;
   constructor Create(); overload;
   constructor Create(red, green, blue: UInt8); overload;
   end;
@@ -51,7 +51,7 @@ var
 procedure finish; inline;
 function getTicks(): UInt64; inline;
 
-operator / (color: TColorRGB; a: integer) z : TColorRGB;
+operator / (color: TColorRGB; a: UInt16) z : TColorRGB;
 
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 procedure readKeys;
@@ -64,15 +64,8 @@ procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
 
-
 {
  TODO: PORT THIS!!!
- struct ColorRGB8bit;
-//a color with 3 components: r, g and b
-struct ColorRGB
-[
-  ColorRGB(const ColorRGB8bit& color);
-];
 
 ColorRGB operator+(const ColorRGB& color, const ColorRGB& color2);
 ColorRGB operator-(const ColorRGB& color, const ColorRGB& color2);
@@ -80,18 +73,6 @@ ColorRGB operator*(const ColorRGB& color, int a);
 ColorRGB operator*(int a, const ColorRGB& color);
 bool operator==(const ColorRGB& color, const ColorRGB& color2);
 bool operator!=(const ColorRGB& color, const ColorRGB& color2);
-
-//a color with 3 components: r, g and b
-struct ColorRGB8bit
-[
-  Uint8 r;
-  Uint8 g;
-  Uint8 b;
-
-  ColorRGB8bit(Uint8 r, Uint8 g, Uint8 b);
-  ColorRGB8bit(const ColorRGB& color);
-  ColorRGB8bit();
-];
 
 //a color with 3 components: h, s and l
 struct ColorHSL
@@ -117,7 +98,7 @@ struct ColorHSV
 }
 
 implementation
-//TColorRGB first
+//TColorRGB stuff first
 constructor TColorRGB.Create; overload;
 begin
   r := 0;
@@ -131,12 +112,10 @@ begin
   g := green;
   b := blue;
 end;
-operator / (color: TColorRGB; a: integer) result : TColorRGB;
+operator / (color: TColorRGB; a: UInt16) result : TColorRGB;
 begin
   if (a = 0) then exit(color);
-  result.r := result.r div a;
-  result.g := result.g div a;
-  result.b := result.b div a;
+  exit(TColorRGB.Create(color.r div a, color.g div a, color.b div a));
 end;
 
 //exit program
@@ -229,13 +208,13 @@ begin
   SDL_RenderDrawLine(renderer, x, y1, x, y2);
 end;
 
-//redraw TODO
+//redraw the frame.
 procedure redraw; inline;
 begin
   SDL_RenderPresent(renderer);
 end;
 
-//cls TODO
+//clear screen
 procedure cls(color: TColorRGB); overload;
 begin
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);

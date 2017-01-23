@@ -10,11 +10,7 @@ uses
 var
   GrDrv, GrMode: smallint;
 begin
-  //writeln('Just test. If you can see that message, then it was compiled successfully.'); //REMOVE THIS
-  //readln;//AND THIS
-  //InitGraph(GrDrv,GrMode,'');  //SAY NO TO GRAPH!
-  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster!');
-  // !!!!! TODO: make UScreen module to do game drawing stuff there, well, at least just port your shit to UGraphic.
+  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (fix collision plz!)');
   while (not done()) do Raycaster.PerformRaycast;
   finish;
 end.

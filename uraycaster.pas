@@ -28,13 +28,10 @@ implementation
     MapPos,step : TPoint;
     perpWallDist: double;
     hit,side: boolean;//NS or EW side
-    LineColor: TColorRGB;
-    TempColor: word;
-    key: char;
+    LineColor, sideColor: TColorRGB;
     MoveSpeed, RotSpeed: double;
     OldVDirection, OldVPlane: TFloatPoint;
   begin
-    side := false; //hotfix!
     MoveSpeed := 0.1;
     RotSpeed := 0.05;
     for ScreenX := 0 to ScreenWidth do
@@ -50,8 +47,6 @@ implementation
       RayDir.y := Game.VDirection.y + VPlane.y * VCameraX;
       MapPos.x := floor(RayPos.x);
       MapPos.y := floor(RayPos.y);
-      //writeln(ScreenX,';x=',1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
-      //writeln('y=',1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
       DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
 
       //shitty hotfix!
@@ -110,15 +105,21 @@ implementation
       DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
       if (drawEnd >= ScreenHeight) then DrawEnd := ScreenHeight - 1;
 
+      LineColor := RGB_Teal;
       case GameMap.Map[MapPos.X][MapPos.Y] of
       1:
         begin
-          LineColor:= RGB_Red;
+          LineColor := RGB_Red;
+        end;
+      2:
+        begin
+          LineColor := RGB_Green;
         end;
       end;
+      SideColor := LineColor / 2;
       if (side = true) then
       begin
-        LineColor := RGB_Maroon;
+        LineColor := SideColor;
       end;
       verLine(ScreenX,DrawStart,DrawEnd,LineColor);
       end;
@@ -159,7 +160,6 @@ implementation
         VPlane.X := VPlane.X * cos(rotSpeed) - VPlane.Y * sin(rotSpeed);
         VPlane.Y := OldVPlane.X * sin(rotSpeed) + VPlane.Y * cos(rotSpeed);
       end;
-      //ClearDevice;
   end;
 
 initialization
