@@ -13,7 +13,7 @@ begin
   writeln('Just test. If you can see that message, then it was compiled successfully.'); //REMOVE THIS
   readln;//AND THIS
   InitGraph(GrDrv,GrMode,'');
-  Raycaster.PerformRaycast;
+  while (true) do Raycaster.PerformRaycast;
   readln;
 end.
 
