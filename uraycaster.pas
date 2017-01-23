@@ -5,7 +5,7 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, Graph, crt, graphics, ugame;
+  Classes, SysUtils, Math, GraphMath, ugraphic, ugame;
 
 type
   TRaycaster = class
@@ -28,12 +28,13 @@ implementation
     MapPos,step : TPoint;
     perpWallDist: double;
     hit,side: boolean;//NS or EW side
-    LineColor: TColor;
+    LineColor: TColorRGB;
     TempColor: word;
     key: char;
     MoveSpeed, RotSpeed: double;
     OldVDirection, OldVPlane: TFloatPoint;
   begin
+    side := false; //hotfix!
     MoveSpeed := 0.1;
     RotSpeed := 0.05;
     for ScreenX := 0 to ScreenWidth do
@@ -105,61 +106,58 @@ implementation
       case GameMap.Map[MapPos.X][MapPos.Y] of
       1:
         begin
-          LineColor:= clRed;
-          TempColor := 12;
+          LineColor:= RGB_Red;
         end;
       end;
       if (side = true) then
       begin
-        LineColor := clMaroon;
-        TempColor := 4;
+        LineColor := RGB_Maroon;
       end;
-      SetColor(TempColor);
-      Line(ScreenX,DrawStart,ScreenX,DrawEnd);
+      verLine(ScreenX,DrawStart,DrawEnd,LineColor);
       end;
-      key := ReadKey;
-
-      case key of
-      'w':
-        begin
-          if (GameMap.Map[Round(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
-            Game.VPlayer.X := Game.VPlayer.X + Game.VDirection.X*MoveSpeed;
-          if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y+Game.VDirection.X*MoveSpeed)] = 0) then
-            Game.VPlayer.Y := Game.VPlayer.Y + Game.VDirection.Y*MoveSpeed;
-        end;
-        's':
-        begin
-          if (GameMap.Map[Round(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
-            Game.VPlayer.X := Game.VPlayer.X - Game.VDirection.X*MoveSpeed;
-          if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y-Game.VDirection.X*MoveSpeed)] = 0) then
-            Game.VPlayer.Y := Game.VPlayer.Y - Game.VDirection.Y*MoveSpeed;
-        end;
-        'd':
-          begin
-            OldVDirection.X := Game.VDirection.X;
-            Game.VDirection.X := Game.VDirection.X * cos(-rotSpeed) - Game.VDirection.Y * sin(-rotSpeed);
-            Game.VDirection.Y := OldVDirection.X * sin(-rotSpeed) + Game.VDirection.Y * cos(-rotSpeed);
-            OldVPlane.X := VPlane.X;
-            VPlane.X := VPlane.X * cos(-rotSpeed) - VPlane.Y * sin(-rotSpeed);
-            VPlane.Y := OldVPlane.X * sin(-rotSpeed) + VPlane.Y * cos(-rotSpeed);
-          end;
-        'a':
-          begin
-            OldVDirection.X := Game.VDirection.X;
-            Game.VDirection.X := Game.VDirection.X * cos(rotSpeed) - Game.VDirection.Y * sin(rotSpeed);
-            Game.VDirection.Y := OldVDirection.X * sin(rotSpeed) + Game.VDirection.Y * cos(rotSpeed);
-            OldVPlane.X := VPlane.X;
-            VPlane.X := VPlane.X * cos(rotSpeed) - VPlane.Y * sin(rotSpeed);
-            VPlane.Y := OldVPlane.X * sin(rotSpeed) + VPlane.Y * cos(rotSpeed);
-          end;
+      //key := ReadKey;
+      readKeys;
+      if keyDown(KEY_UP) then
+      begin
+        if (GameMap.Map[Round(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
+          Game.VPlayer.X := Game.VPlayer.X + Game.VDirection.X*MoveSpeed;
+        if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y+Game.VDirection.X*MoveSpeed)] = 0) then
+          Game.VPlayer.Y := Game.VPlayer.Y + Game.VDirection.Y*MoveSpeed;
       end;
-      ClearDevice;
+      if keyDown(KEY_DOWN) then
+      begin
+        if (GameMap.Map[Round(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
+          Game.VPlayer.X := Game.VPlayer.X - Game.VDirection.X*MoveSpeed;
+        if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y-Game.VDirection.X*MoveSpeed)] = 0) then
+          Game.VPlayer.Y := Game.VPlayer.Y - Game.VDirection.Y*MoveSpeed;
+      end;
+      if keyDown(KEY_RIGHT) then
+      begin
+        OldVDirection.X := Game.VDirection.X;
+        Game.VDirection.X := Game.VDirection.X * cos(-rotSpeed) - Game.VDirection.Y * sin(-rotSpeed);
+        Game.VDirection.Y := OldVDirection.X * sin(-rotSpeed) + Game.VDirection.Y * cos(-rotSpeed);
+        OldVPlane.X := VPlane.X;
+        VPlane.X := VPlane.X * cos(-rotSpeed) - VPlane.Y * sin(-rotSpeed);
+        VPlane.Y := OldVPlane.X * sin(-rotSpeed) + VPlane.Y * cos(-rotSpeed);
+      end;
+      if keyDown(KEY_LEFT) then
+      begin
+        OldVDirection.X := Game.VDirection.X;
+        Game.VDirection.X := Game.VDirection.X * cos(rotSpeed) - Game.VDirection.Y * sin(rotSpeed);
+        Game.VDirection.Y := OldVDirection.X * sin(rotSpeed) + Game.VDirection.Y * cos(rotSpeed);
+        OldVPlane.X := VPlane.X;
+        VPlane.X := VPlane.X * cos(rotSpeed) - VPlane.Y * sin(rotSpeed);
+        VPlane.Y := OldVPlane.X * sin(rotSpeed) + VPlane.Y * cos(rotSpeed);
+      end;
+      //ClearDevice;
+      redraw;
+      cls;
   end;
 
 initialization
 
   Raycaster := TRaycaster.Create;
-  Raycaster.ScreenWidth := 1024;
-  Raycaster.ScreenHeight:= 768;
+  Raycaster.ScreenWidth := 800;
+  Raycaster.ScreenHeight:= 600;
   Raycaster.VPlane := FloatPoint(0,0.66);
 end.

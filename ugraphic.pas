@@ -15,6 +15,11 @@ type TColorRGB = class
   constructor Create(red, green, blue: UInt8); overload;
   end;
 
+const
+  KEY_UP = SDLK_UP;
+  KEY_DOWN = SDLK_DOWN;
+  KEY_LEFT = SDLK_LEFT;
+  KEY_RIGHT = SDLK_RIGHT;
 
 var
   screen_width,
@@ -203,7 +208,7 @@ begin
     if (event.type_ = SDL_QUITEV) then exit(true);
     if (quit_if_esc and keyDown(SDL_SCANCODE_ESCAPE)) then exit(true);
   end;
-  exit(false);
+  Result := false;
 end;
 function done: boolean; inline; overload;
 begin
