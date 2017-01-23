@@ -52,7 +52,7 @@ initialization
   GameMap := TMap.Create;
   GameMap.Map := GameMap.ReadFromFile;
 
-  Game.VPlayer := FloatPoint(5,7);
-  Game.VDirection := FloatPoint(-1,0);
+  Game.VPlayer := FloatPoint(5.0,7.0);
+  Game.VDirection := FloatPoint(-1.0,0.0);
 end.
 

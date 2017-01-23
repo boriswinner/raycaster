@@ -16,6 +16,6 @@ begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster!');
   // !!!!! TODO: make UScreen module to do game drawing stuff there, well, at least just port your shit to UGraphic.
   while (not done()) do Raycaster.PerformRaycast;
-  readln;
+  finish;
 end.
 

@@ -48,6 +48,7 @@ var
 
 //TODO clean up that shit
 
+procedure finish; inline;
 function getTicks(): UInt64; inline;
 
 operator / (color: TColorRGB; a: integer) z : TColorRGB;
@@ -138,6 +139,13 @@ begin
   result.b := result.b div a;
 end;
 
+//exit program
+procedure finish; inline;
+begin
+  SDL_Quit;
+  halt(1);
+end;
+
 //getTicks from SDL
 function getTicks(): UInt64; inline;
 begin
@@ -158,8 +166,7 @@ begin
   if window = nil then
   begin
     writeln('Window error: ', SDL_GetError);
-    SDL_Quit;
-    halt(1);
+    finish;
   end;
 
   renderer := SDL_CreateRenderer(window,-1, SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC);
@@ -167,8 +174,7 @@ begin
   if renderer = nil then
   begin
     writeln('Renderer error: ', SDL_GetError);
-    SDL_Quit;
-    halt(1);
+    finish;
   end;
 
   if fullscreen then
@@ -201,6 +207,7 @@ end;
 //checking if we have received exit event
 function done(quit_if_esc, delay: boolean): boolean;
 begin
+  //quit_if_esc does not work!
   if delay then SDL_Delay(5);
   readKeys;
   while SDL_PollEvent(@event)<>0 do

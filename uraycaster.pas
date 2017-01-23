@@ -39,19 +39,26 @@ implementation
     RotSpeed := 0.05;
     for ScreenX := 0 to ScreenWidth do
     begin
-      VCameraX := 2*ScreenX/ScreenWidth - 1;
-      if (VCameraX = 0) then
+      VCameraX := 2.0*double(ScreenX)/double(ScreenWidth) - 1.0;
+      {if (VCameraX = 0) then
       begin
         writeln('ScreenX ',IntToStr(ScreenX));
         writeln('ScreenWidth  ',IntToStr(ScreenWidth));
-      end;
+      end; }
       RayPos := Game.VPlayer;
       RayDir.x := Game.VDirection.x + VPlane.x * VCameraX;
       RayDir.y := Game.VDirection.y + VPlane.y * VCameraX;
       MapPos.x := floor(RayPos.x);
       MapPos.y := floor(RayPos.y);
-      DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / max(rayDir.X * rayDir.X,0.001)); //bad hotfix here
-      DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / max(rayDir.Y * rayDir.Y,0.001));
+      //writeln(ScreenX,';x=',1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
+      //writeln('y=',1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
+      DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
+
+      //shitty hotfix!
+      if (RayDir.Y = 0) then begin
+      DeltaDist.y := 1; RayDir.Y := 0.00001 end else
+
+      DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
       hit := false;
 
       if (RayDir.x < 0) then
@@ -115,7 +122,10 @@ implementation
       end;
       verLine(ScreenX,DrawStart,DrawEnd,LineColor);
       end;
-      //key := ReadKey;
+
+      redraw;
+      cls;
+
       readKeys;
       if keyDown(KEY_UP) then
       begin
@@ -150,8 +160,6 @@ implementation
         VPlane.Y := OldVPlane.X * sin(rotSpeed) + VPlane.Y * cos(rotSpeed);
       end;
       //ClearDevice;
-      redraw;
-      cls;
   end;
 
 initialization
@@ -159,5 +167,5 @@ initialization
   Raycaster := TRaycaster.Create;
   Raycaster.ScreenWidth := 800;
   Raycaster.ScreenHeight:= 600;
-  Raycaster.VPlane := FloatPoint(0,0.66);
+  Raycaster.VPlane := FloatPoint(0.0,0.66);
 end.
