@@ -16,6 +16,7 @@ type TColorRGB = class
   end;
 
 const
+  CHAR_SIZE = 12;
   KEY_UP = SDLK_UP;
   KEY_DOWN = SDLK_DOWN;
   KEY_LEFT = SDLK_LEFT;
@@ -28,6 +29,7 @@ var
   renderer      : PSDL_Renderer;
   event         : TSDL_Event;
   scr           : PSDL_Texture;
+  font          : PSDL_Surface;
   inkeys        : PUInt8; //maybe array of Uint8?
 
   RGB_Black,
@@ -60,9 +62,13 @@ function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+procedure pSet(x, y: integer; color: TColorRGB);
+procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
+procedure initFont;
+procedure writeText(text: string; x, y:integer);
 
 {
  TODO: PORT THIS!!!
@@ -121,6 +127,8 @@ end;
 //exit program
 procedure finish; inline;
 begin
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
   SDL_Quit;
   halt(1);
 end;
@@ -163,6 +171,8 @@ begin
       writeln('logical size error: ', SDL_GetError);
   end;
   scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), 0, width, height);
+
+  initFont;
 end;
 
 //Reads keys to array.
@@ -208,6 +218,23 @@ begin
   SDL_RenderDrawLine(renderer, x, y1, x, y2);
 end;
 
+//set pixel
+procedure pSet(x, y: integer; color: TColorRGB);
+begin
+  if (x < 0) or (y < 0) or (x >= screen_width) or (y >= screen_height) then exit;
+  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  SDL_RenderDrawPoint(renderer, x, y);
+end;
+
+//draw rectangular
+procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
+var r: TSDL_Rect;
+begin
+  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  r.x := x1; r.y := y1; r.w := x2-x1; r.h := y2-y1;
+  SDL_RenderFillRect(renderer,@r);
+end;
+
 //redraw the frame.
 procedure redraw; inline;
 begin
@@ -223,6 +250,51 @@ end;
 procedure cls; inline; overload;
 begin
   cls(RGB_Black); //yaaaaay shitty code
+end;
+
+//init font to make it usable
+procedure initFont;
+begin
+  font := SDL_LoadBMP('./res/good_font.bmp');
+  if font = nil then
+  begin
+    writeln('Can''t get the font file. ');
+    exit;
+  end;
+  SDL_ConvertSurfaceFormat(font, SDL_PIXELFORMAT_RGB24, 0);
+  SDL_SetColorKey(font, 1, SDL_MapRGB(font^.format, 0, 0, 0));
+end;
+
+// write text
+procedure writeText(text: string; x, y:integer);
+var
+  len, i, row_cnt: integer;
+  char_code: byte;
+  font_tex: PSDL_Texture;
+  selection, char_rect: TSDL_Rect;
+begin
+  len := CHAR_SIZE * Length(text);
+  row_cnt := font^.w div CHAR_SIZE;
+
+  if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
+    exit;
+
+  selection.w := CHAR_SIZE;
+  selection.h := CHAR_SIZE;
+
+  char_rect.w := CHAR_SIZE;
+  char_rect.h := CHAR_SIZE;
+  char_rect.y := y;
+
+  font_tex := SDL_CreateTextureFromSurface(renderer,font);
+  for i:=1 to Length(text) do
+  begin
+    char_code := ord(text[i]);
+    selection.y := (char_code div row_cnt)*CHAR_SIZE;
+    selection.x := (char_code mod row_cnt)*CHAR_SIZE;
+    char_rect.x := x + (i-1)*CHAR_SIZE;
+    SDL_RenderCopy(renderer,font_tex,@selection,@char_rect);
+  end;
 end;
 
 initialization
@@ -242,5 +314,6 @@ initialization
   RGB_Navy      := TColorRGB.Create(  0,   0, 128);
   RGB_Teal      := TColorRGB.Create(  0, 128, 128);
   RGB_Purple    := TColorRGB.Create(128,   0, 128);
+
 end.
 

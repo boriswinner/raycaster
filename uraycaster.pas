@@ -34,6 +34,8 @@ implementation
   begin
     MoveSpeed := 0.1;
     RotSpeed := 0.05;
+    drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
+    drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
     for ScreenX := 0 to ScreenWidth do
     begin
       VCameraX := 2.0*double(ScreenX)/double(ScreenWidth) - 1.0;
@@ -120,9 +122,14 @@ implementation
       if (side = true) then
       begin
         LineColor := SideColor;
+        SideColor := nil;
       end;
       verLine(ScreenX,DrawStart,DrawEnd,LineColor);
+      LineColor := nil;
       end;
+
+      writeText('Raycaster v.0.2 by t1meshift & boriswinner',0,0);
+      writeText('Graphics by t1meshift',0,CHAR_SIZE+1);
 
       redraw;
       cls;
