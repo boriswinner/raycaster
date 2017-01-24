@@ -143,17 +143,17 @@ implementation
       readKeys;
       if keyDown(KEY_UP) then
       begin
-        if (GameMap.Map[Round(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
-          Game.VPlayer.X := Game.VPlayer.X + Game.VDirection.X*MoveSpeed;
-        if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y+Game.VDirection.X*MoveSpeed)] = 0) then
-          Game.VPlayer.Y := Game.VPlayer.Y + Game.VDirection.Y*MoveSpeed;
+        if (GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) then
+          Game.VPlayer.X += Game.VDirection.X*MoveSpeed;
+        if (GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) then
+          Game.VPlayer.Y += Game.VDirection.Y*MoveSpeed;
       end;
       if keyDown(KEY_DOWN) then
       begin
-        if (GameMap.Map[Round(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Round(Game.VPlayer.Y)] = 0) then
-          Game.VPlayer.X := Game.VPlayer.X - Game.VDirection.X*MoveSpeed;
-        if (GameMap.Map[Round(Game.VPlayer.X)][Round(Game.VPlayer.Y-Game.VDirection.X*MoveSpeed)] = 0) then
-          Game.VPlayer.Y := Game.VPlayer.Y - Game.VDirection.Y*MoveSpeed;
+        if (GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) then
+          Game.VPlayer.X -= Game.VDirection.X*MoveSpeed;
+        if (GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) then
+          Game.VPlayer.Y -= Game.VDirection.Y*MoveSpeed;
       end;
       if keyDown(KEY_RIGHT) then
       begin
