@@ -9,9 +9,11 @@ interface
 uses
   Classes, SysUtils, SDL2;
 
-type TColorRGB = record
-  r, g, b: UInt8;
-  constructor Create(red, green, blue: UInt8);
+type
+
+  TColorRGB = record
+    r, g, b: UInt8;
+    constructor Create(red, green, blue: UInt8);
   end;
 
 const

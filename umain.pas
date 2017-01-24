@@ -10,7 +10,7 @@ uses
 
 begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (fix collision plz!)');
-  while (not done()) do Raycaster.PerformRaycast;
+  while (not done()) do Raycaster.DrawFrame;
   finish;
 end.
 
