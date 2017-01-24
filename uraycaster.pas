@@ -10,7 +10,7 @@ uses
 type
   TRaycaster = class
     VPlane: TFloatPoint;
-    FrameTime,OldFrameTime: double;
+    Time,OldTime, FrameTime: double;
     ScreenWidth,ScreenHeight: integer;
     VCameraX: double;
     procedure PerformRaycast;
@@ -131,6 +131,11 @@ implementation
       writeText('Raycaster v.0.2 by t1meshift & boriswinner',0,0);
       writeText('Graphics by t1meshift',0,CHAR_SIZE+1);
 
+      OldTime := Time;
+      Time := getTicks;
+      FrameTime := (time - oldTime) / 1000;
+      writeText('FPS: '+FloatToStr(1/FrameTime),0,CHAR_SIZE+15);
+
       redraw;
       cls;
 
@@ -175,4 +180,5 @@ initialization
   Raycaster.ScreenWidth := 800;
   Raycaster.ScreenHeight:= 600;
   Raycaster.VPlane := FloatPoint(0.0,0.66);
+  Raycaster.Time := 0;
 end.
