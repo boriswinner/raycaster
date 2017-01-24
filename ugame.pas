@@ -11,11 +11,11 @@ uses
 type
   IntGrid = array of array of integer;
 
-  TGame = class
+  TGame = record
     VPlayer, VDirection: TFloatPoint; //vectors
   end;
 
-  TMap = class
+  TMap = record
     private
       const MapFileName = 'map.txt';
     public
@@ -47,9 +47,6 @@ implementation
   end;
 initialization
 
-  Game := TGame.Create;
-
-  GameMap := TMap.Create;
   GameMap.Map := GameMap.ReadFromFile;
 
   Game.VPlayer := FloatPoint(5.0,7.0);

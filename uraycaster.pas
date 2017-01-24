@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Math, GraphMath, ugraphic, ugame;
 
 type
-  TRaycaster = class
+  TRaycaster = record
     VPlane: TFloatPoint;
     Time,OldTime, FrameTime: double;
     ScreenWidth,ScreenHeight: integer;
@@ -173,8 +173,6 @@ implementation
   end;
 
 initialization
-
-  Raycaster := TRaycaster.Create;
   Raycaster.ScreenWidth := 800;
   Raycaster.ScreenHeight:= 600;
   Raycaster.VPlane := FloatPoint(0.0,0.66);
