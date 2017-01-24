@@ -32,8 +32,6 @@ implementation
     MoveSpeed, RotSpeed: double;
     OldVDirection, OldVPlane: TFloatPoint;
   begin
-    MoveSpeed := 0.1;
-    RotSpeed := 0.05;
     drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
     drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
     for ScreenX := 0 to ScreenWidth do
@@ -138,6 +136,9 @@ implementation
 
       redraw;
       cls;
+
+      MoveSpeed := FrameTime*7;
+      RotSpeed := FrameTime*3;
 
       readKeys;
       if keyDown(KEY_UP) then
