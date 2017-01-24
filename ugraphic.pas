@@ -111,11 +111,9 @@ begin
   b := blue;
 end;
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
-var temp: TColorRGB;
 begin
   if (a <= 0) then exit(color);
-  temp := TColorRGB.Create(color.r div a, color.g div a, color.b div a);
-  res := temp;
+  Result := TColorRGB.Create(color.r div a, color.g div a, color.b div a);
 end;
 
 //exit program
