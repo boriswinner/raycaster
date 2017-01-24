@@ -1,6 +1,6 @@
 unit ugraphic;
 
-{$mode objfpc}{$H+}{$INLINE ON}
+{$mode objfpc}{$H+}{$INLINE ON} {$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
@@ -9,10 +9,9 @@ interface
 uses
   Classes, SysUtils, SDL2;
 
-type TColorRGB = class
+type TColorRGB = record
   r, g, b: UInt8;
-  constructor Create(); overload;
-  constructor Create(red, green, blue: UInt8); overload;
+  constructor Create(red, green, blue: UInt8);
   end;
 
 const
@@ -105,15 +104,8 @@ struct ColorHSV
 
 implementation
 //TColorRGB stuff first
-constructor TColorRGB.Create; overload;
+constructor TColorRGB.Create(red, green, blue: UInt8);
 begin
-  r := 0;
-  g := 0;
-  b := 0;
-end;
-constructor TColorRGB.Create(red, green, blue: UInt8); overload;
-begin
-
   r := red;
   g := green;
   b := blue;

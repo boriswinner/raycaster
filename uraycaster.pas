@@ -1,6 +1,6 @@
 unit uraycaster;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+} {$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
@@ -28,7 +28,7 @@ implementation
     MapPos,step : TPoint;
     perpWallDist: double;
     hit,side: boolean;//NS or EW side
-    LineColor, sideColor: TColorRGB;
+    WallColor: TColorRGB;
     MoveSpeed, RotSpeed: double;
     OldVDirection, OldVPlane: TFloatPoint;
   begin
@@ -105,25 +105,22 @@ implementation
       DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
       if (drawEnd >= ScreenHeight) then DrawEnd := ScreenHeight - 1;
 
-      LineColor := RGB_Teal;
+      WallColor := RGB_Teal;
       case GameMap.Map[MapPos.X][MapPos.Y] of
       1:
         begin
-          LineColor := RGB_Red;
+          WallColor := RGB_Red;
         end;
       2:
         begin
-          LineColor := RGB_Green;
+          WallColor := RGB_Green;
         end;
       end;
-      SideColor := LineColor / 2;
       if (side = true) then
       begin
-        LineColor := SideColor;
-        SideColor := nil;
+        WallColor := WallColor / 2;
       end;
-      verLine(ScreenX,DrawStart,DrawEnd,LineColor);
-      LineColor := nil;
+      verLine(ScreenX,DrawStart,DrawEnd,WallColor);
       end;
 
       writeText('Raycaster v.0.2 by t1meshift & boriswinner',0,0);

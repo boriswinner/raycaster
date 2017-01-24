@@ -1,6 +1,6 @@
 unit ugame;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+} {$MODESWITCH ADVANCEDRECORDS}
 
 interface
 

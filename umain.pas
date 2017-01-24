@@ -1,6 +1,6 @@
 program umain;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+} {$MODESWITCH ADVANCEDRECORDS}
 
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
