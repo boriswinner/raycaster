@@ -30,7 +30,7 @@ var
   event         : TSDL_Event;
   scr           : PSDL_Texture;
   font          : PSDL_Surface;
-  inkeys        : PUInt8; //maybe array of Uint8?
+  inkeys        : PUInt8;
 
   RGB_Black,
   RGB_Red,
@@ -53,7 +53,7 @@ var
 procedure finish; inline;
 function getTicks(): UInt64; inline;
 
-operator / (color: TColorRGB; a: UInt16) z : TColorRGB;
+operator / (color: TColorRGB; a: integer) res : TColorRGB;
 
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 procedure readKeys;
@@ -118,10 +118,12 @@ begin
   g := green;
   b := blue;
 end;
-operator / (color: TColorRGB; a: UInt16) result : TColorRGB;
+operator / (color: TColorRGB; a: integer) res : TColorRGB;
+var temp: TColorRGB;
 begin
-  if (a = 0) then exit(color);
-  exit(TColorRGB.Create(color.r div a, color.g div a, color.b div a));
+  if (a <= 0) then exit(color);
+  temp := TColorRGB.Create(color.r div a, color.g div a, color.b div a);
+  res := temp;
 end;
 
 //exit program
@@ -141,6 +143,8 @@ end;
 
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
+const
+  RENDER_FLAGS = SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
 begin
   screen_width := width;
   screen_height := height;
@@ -156,7 +160,7 @@ begin
     finish;
   end;
 
-  renderer := SDL_CreateRenderer(window,-1, SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC);
+  renderer := SDL_CreateRenderer(window,-1, RENDER_FLAGS);
 
   if renderer = nil then
   begin
@@ -170,7 +174,8 @@ begin
     if SDL_RenderSetLogicalSize(renderer, screen_width, screen_height)<>0 then
       writeln('logical size error: ', SDL_GetError);
   end;
-  scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), 0, width, height);
+
+  //scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), 0, width, height);
 
   initFont;
 end;
@@ -295,6 +300,7 @@ begin
     char_rect.x := x + (i-1)*CHAR_SIZE;
     SDL_RenderCopy(renderer,font_tex,@selection,@char_rect);
   end;
+  SDL_DestroyTexture(font_tex);
 end;
 
 initialization
