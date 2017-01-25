@@ -23,6 +23,8 @@ const
   KEY_LEFT = SDLK_LEFT;
   KEY_RIGHT = SDLK_RIGHT;
 
+  RGB_TestColor : TColorRGB = (r:123; g:45; b:67);
+
 var
   screen_width,
   screen_height : integer;
@@ -136,7 +138,7 @@ end;
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
+  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
 begin
   screen_width := width;
   screen_height := height;

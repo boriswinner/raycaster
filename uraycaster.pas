@@ -45,11 +45,11 @@ implementation
     MapPos.x := floor(RayPos.x);
     MapPos.y := floor(RayPos.y);
     DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
-    //shitty hotfix!
-    if (RayDir.Y = 0) then begin
-    DeltaDist.y := 1; RayDir.Y := 0.00001 end else
+
+
+    if (RayDir.Y = 0) then RayDir.Y := 0.00001; //shitty hotfix!
+
     DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
-    //end of hotfix
     hit := false;
 
     if (RayDir.x < 0) then
@@ -105,6 +105,7 @@ implementation
     DrawStart := max(0,floor(-LineHeight / 2 + ScreenHeight / 2));
     DrawEnd := min(ScreenHeight - 1,floor(LineHeight / 2 + ScreenHeight / 2));
 
+    WallColor := RGB_TestColor; //default texture in case number doesn't exist
     case GameMap.Map[MapPos.X][MapPos.Y] of
       1: WallColor := RGB_Red;
       2: WallColor := RGB_Green;
@@ -139,7 +140,7 @@ implementation
     OldTime := Time;
     Time := getTicks;
     FrameTime := (time - oldTime) / 1000;
-    writeText('FPS: '+FloatToStr(1/FrameTime),0,2*CHAR_SIZE+1);
+    writeText('FPS: '+FloatToStr(floor(1/FrameTime*100)/100),0,2*CHAR_SIZE+1);
   end;
 
   procedure TRaycaster.HandleInput;
