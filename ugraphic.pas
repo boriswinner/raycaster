@@ -23,7 +23,22 @@ const
   KEY_LEFT = SDLK_LEFT;
   KEY_RIGHT = SDLK_RIGHT;
 
-  RGB_TestColor : TColorRGB = (r:123; g:45; b:67);
+  RGB_Black     : TColorRGB = (r: 0; g: 0; b: 0);
+  RGB_Red       : TColorRGB = (r: 255; g: 0; b: 0);
+  RGB_Green     : TColorRGB = (r: 0; g: 255; b: 0);
+  RGB_Blue      : TColorRGB = (r: 0; g: 0; b: 255);
+  RGB_Cyan      : TColorRGB = (r: 0; g: 255; b: 255);
+  RGB_Magenta   : TColorRGB = (r: 255; g: 0; b: 255);
+  RGB_Yellow    : TColorRGB = (r: 255; g: 255; b: 0);
+  RGB_White     : TColorRGB = (r: 255; g: 255; b: 255);
+  RGB_Gray      : TColorRGB = (r: 128; g: 128; b: 128);
+  RGB_Grey      : TColorRGB = (r: 192; g: 192; b: 192);
+  RGB_Maroon    : TColorRGB = (r: 128; g: 0; b: 0);
+  RGB_Darkgreen : TColorRGB = (r: 0; g: 128; b: 0);
+  RGB_Navy      : TColorRGB = (r: 0; g: 0; b: 128);
+  RGB_Teal      : TColorRGB = (r: 0; g: 128; b: 128);
+  RGB_Purple    : TColorRGB = (r: 128; g: 0; b: 128);
+
 
 var
   screen_width,
@@ -35,26 +50,10 @@ var
   font          : PSDL_Surface;
   inkeys        : PUInt8;
 
-  RGB_Black,
-  RGB_Red,
-  RGB_Green,
-  RGB_Blue,
-  RGB_Cyan,
-  RGB_Magenta,
-  RGB_Yellow,
-  RGB_White,
-  RGB_Gray,
-  RGB_Grey,
-  RGB_Maroon,
-  RGB_Darkgreen,
-  RGB_Navy,
-  RGB_Teal,
-  RGB_Purple: TColorRGB;
-
 //TODO clean up that shit
 
 procedure finish; inline;
-function getTicks(): UInt64; inline;
+function getTicks: UInt64; inline;
 
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
 
@@ -117,7 +116,7 @@ end;
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
 begin
   if (a <= 0) then exit(color);
-  Result := TColorRGB.Create(color.r div a, color.g div a, color.b div a);
+  Result := TColorRGB.Create(color.r div a, color.g div a, color.b div a); // seems shitty, need to fix it
 end;
 
 //exit program
@@ -130,7 +129,7 @@ begin
 end;
 
 //getTicks from SDL
-function getTicks(): UInt64; inline;
+function getTicks: UInt64; inline;
 begin
   Result := SDL_GetTicks;
 end;
@@ -254,6 +253,7 @@ end;
 //init font to make it usable
 procedure initFont;
 begin
+  // TODO LOAD FONTS FROM FILE
   font := SDL_LoadBMP('./res/good_font.bmp');
   if font = nil then
   begin
@@ -261,7 +261,7 @@ begin
     exit;
   end;
   SDL_ConvertSurfaceFormat(font, SDL_PIXELFORMAT_RGB24, 0);
-  SDL_SetColorKey(font, 1, SDL_MapRGB(font^.format, 0, 0, 0));
+  SDL_SetColorKey(font, 1, SDL_MapRGB(font^.format, 0, 0, 0)); //make transparent bg
 end;
 
 // write text
@@ -272,11 +272,12 @@ var
   font_tex: PSDL_Texture;
   selection, char_rect: TSDL_Rect;
 begin
+  //TODO \n support
   len := CHAR_SIZE * Length(text);
   row_cnt := font^.w div CHAR_SIZE;
 
   if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
-    exit;
+    exit; // if our text is too big then we don't work
 
   selection.w := CHAR_SIZE;
   selection.h := CHAR_SIZE;
@@ -285,35 +286,19 @@ begin
   char_rect.h := CHAR_SIZE;
   char_rect.y := y;
 
-  font_tex := SDL_CreateTextureFromSurface(renderer,font);
+  font_tex := SDL_CreateTextureFromSurface(renderer,font); // we need this for RenderCopy
   for i:=1 to Length(text) do
   begin
-    char_code := ord(text[i]);
-    selection.y := (char_code div row_cnt)*CHAR_SIZE;
-    selection.x := (char_code mod row_cnt)*CHAR_SIZE;
-    char_rect.x := x + (i-1)*CHAR_SIZE;
-    SDL_RenderCopy(renderer,font_tex,@selection,@char_rect);
+    char_code := ord(text[i]); // getting char code...
+    selection.y := (char_code div row_cnt)*CHAR_SIZE; // and then we get our
+    selection.x := (char_code mod row_cnt)*CHAR_SIZE; // char location on font
+    char_rect.x := x + (i-1)*CHAR_SIZE; // move next char of string to the right
+    SDL_RenderCopy(renderer,font_tex,@selection,@char_rect); // and then we copy our char from font
   end;
-  SDL_DestroyTexture(font_tex);
+  SDL_DestroyTexture(font_tex); // prevent memory leak
 end;
 
 initialization
-  //TODO implement this as static property of class!!!!!!!!
-  RGB_Black     := TColorRGB.Create(0,    0,    0);
-  RGB_Red       := TColorRGB.Create(255,   0,   0);
-  RGB_Green     := TColorRGB.Create(0,   255,   0);
-  RGB_Blue      := TColorRGB.Create(0,   0,   255);
-  RGB_Cyan      := TColorRGB.Create(0,  255,  255);
-  RGB_Magenta   := TColorRGB.Create(255,  0,  255);
-  RGB_Yellow    := TColorRGB.Create(255,  255,  0);
-  RGB_White     := TColorRGB.Create(255, 255, 255);
-  RGB_Gray      := TColorRGB.Create(128, 128, 128);
-  RGB_Grey      := TColorRGB.Create(192, 192, 192);
-  RGB_Maroon    := TColorRGB.Create(128,   0,   0);
-  RGB_Darkgreen := TColorRGB.Create(  0, 128,   0);
-  RGB_Navy      := TColorRGB.Create(  0,   0, 128);
-  RGB_Teal      := TColorRGB.Create(  0, 128, 128);
-  RGB_Purple    := TColorRGB.Create(128,   0, 128);
 
 end.
 

@@ -9,8 +9,8 @@ uses
   Classes, uraycaster, ugame, ugraphic;
 
 begin
-  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (fix collision plz!)');
-  while (not done()) do Raycaster.DrawFrame;
+  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (collision isn''t good)');
+  while (not done) do Raycaster.DrawFrame;
   finish;
 end.
 
