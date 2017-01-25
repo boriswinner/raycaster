@@ -105,7 +105,7 @@ implementation
     DrawStart := max(0,floor(-LineHeight / 2 + ScreenHeight / 2));
     DrawEnd := min(ScreenHeight - 1,floor(LineHeight / 2 + ScreenHeight / 2));
 
-    WallColor := RGB_TestColor; //default texture in case number doesn't exist
+    WallColor := RGB_Magenta; //default texture in case number doesn't exist
     case GameMap.Map[MapPos.X][MapPos.Y] of
       1: WallColor := RGB_Red;
       2: WallColor := RGB_Green;
