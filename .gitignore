@@ -3,3 +3,4 @@
 *.res
 /lib/*
 *.lps
+*.dll
