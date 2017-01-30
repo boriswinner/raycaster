@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, uraycaster, ugame, ugraphic;
+  Classes, uraycaster, ugame, ugraphic, usound;
 
 begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (collision isn''t good)');

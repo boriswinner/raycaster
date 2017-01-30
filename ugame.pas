@@ -26,6 +26,7 @@ type
 var
   Game: TGame;
   GameMap: TMap;
+  LevelNumber: integer;
 implementation
   function TMap.ReadFromFile: IntGrid;
   var
@@ -51,5 +52,7 @@ initialization
 
   Game.VPlayer := FloatPoint(5.0,7.0);
   Game.VDirection := FloatPoint(-1.0,0.0);
+
+  LevelNumber := 1;
 end.
 
