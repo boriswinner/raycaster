@@ -122,6 +122,8 @@ end;
 //exit program
 procedure finish; inline;
 begin
+  SDL_SetRenderTarget(renderer, nil);
+  SDL_DestroyTexture(scr);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit;
@@ -137,7 +139,7 @@ end;
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
+  RENDER_FLAGS = SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC or SDL_RENDERER_TARGETTEXTURE; //HW accel + VSync
 begin
   screen_width := width;
   screen_height := height;
@@ -153,7 +155,7 @@ begin
     finish;
   end;
 
-  renderer := SDL_CreateRenderer(window,-1, RENDER_FLAGS);
+  renderer := SDL_CreateRenderer(window, -1, RENDER_FLAGS);
 
   if renderer = nil then
   begin
@@ -168,8 +170,8 @@ begin
       writeln('logical size error: ', SDL_GetError);
   end;
 
-  //scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), 0, width, height);
-
+  scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_TARGET, width, height);
+  SDL_SetRenderTarget(renderer, scr);
   initFont;
 end;
 
@@ -236,7 +238,11 @@ end;
 //redraw the frame.
 procedure redraw; inline;
 begin
+  SDL_SetRenderTarget(renderer, nil);
+  SDL_RenderCopy(renderer, scr, nil, nil);
   SDL_RenderPresent(renderer);
+  cls;
+  SDL_SetRenderTarget(renderer, scr);
 end;
 
 //clear screen

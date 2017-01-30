@@ -128,7 +128,7 @@ implementation
     end;
     DrawFps;
     redraw;
-    cls;
+    //cls;  //called in redraw()
     HandleInput;
   end;
 

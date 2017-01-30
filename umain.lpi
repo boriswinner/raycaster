@@ -22,7 +22,7 @@
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="2">
-      <Item1 Name="Default" Default="True"/>
+      <Item1 Name="Release" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
           <Version Value="11"/>
@@ -100,14 +100,23 @@
       <OtherUnitFiles Value="sdl2"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <CodeGeneration>
+      <SmartLinkUnit Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
+    </CodeGeneration>
     <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
+      <LinkSmart Value="True"/>
       <Options>
-        <PassLinkerOptions Value="True"/>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CustomOptions Value="-gh"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
