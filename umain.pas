@@ -12,7 +12,8 @@ uses
 begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, FullscreenMode, 'Raycaster (collision isn''t good)');
   InitTextures;
-  while (not done) do Raycaster.DrawFrame;
+  while (not done) do
+    Raycaster.DrawFrame;
   FinishSoundModule;
   FinishGraphicModule;
 end.

@@ -35,8 +35,10 @@ begin
 
    if _Transparent then
    begin
-     SDL_SetColorKey(bmp, SDL_TRUE, SDL_MapRGB(bmp^.format, 255, 0, 255)); //magenta is transparent
+     SDL_SetColorKey(bmp, 1, SDL_MapRGB(bmp^.format, 255, 0, 255)); //magenta is transparent
    end;
+
+   Result.Transparent := _Transparent;
 
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
    if Result.RawTexture = nil then

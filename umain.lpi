@@ -32,7 +32,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="sdl2;SquallSound"/>
+            <OtherUnitFiles Value="libraries\SquallSound;libraries\sdl2"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -48,6 +48,7 @@
               <OverflowChecks Value="True"/>
               <StackChecks Value="True"/>
             </Checks>
+            <VerifyObjMethodCallValidity Value="True"/>
             <TargetCPU Value="i386"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
@@ -109,10 +110,8 @@
         <IsPartOfProject Value="True"/>
       </Unit5>
       <Unit6>
-        <Filename Value="uconfigurator.pas"/>
+        <Filename Value="udoor.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="ConfiguratorForm"/>
-        <ResourceBaseClass Value="Form"/>
       </Unit6>
     </Units>
   </ProjectOptions>
@@ -124,7 +123,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="sdl2;SquallSound"/>
+      <OtherUnitFiles Value="libraries\SquallSound;libraries\sdl2"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -139,6 +138,7 @@
         <OverflowChecks Value="True"/>
         <StackChecks Value="True"/>
       </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
       <TargetCPU Value="i386"/>
     </CodeGeneration>
     <Linking>

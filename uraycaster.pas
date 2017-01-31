@@ -7,6 +7,13 @@ interface
 uses
   Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor;
 
+const STACK_LOAD_MAX = 5;
+type
+  RenderInfo = record
+    CPerpWallDist, CWallX: double;
+    CMapPos: TPoint;
+    CSide: boolean;
+  end;
 type
   TRaycaster = record
     private
@@ -14,6 +21,8 @@ type
       MapPos: TPoint;
       side: boolean;
       Time,OldTime, FrameTime, WallX: double;
+      RenderStack: array[0..STACK_LOAD_MAX] of RenderInfo;
+      StackLoad: UInt8;
     public
       VPlane: TFloatPoint;
       ScreenWidth,ScreenHeight: integer;
@@ -26,6 +35,7 @@ type
       procedure DrawFPS;
       procedure HandleInput;//move it to another place
   end;
+
 
 var
   Raycaster : TRaycaster;
@@ -41,6 +51,7 @@ implementation
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
+    Textures[5] := LoadTexture(renderer, 'door.bmp', true, true);
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
     Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
   end;
@@ -52,6 +63,7 @@ implementation
     Step: TPoint;
     hit: boolean;
   begin
+    StackLoad := 0;
     CameraX := 2.0*double(AScreenX)/double(ScreenWidth) - 1.0;
     RayPos := Game.VPlayer;
     RayDir.x := Game.VDirection.x + VPlane.x * CameraX;
@@ -87,7 +99,6 @@ implementation
     end;
 
     //perform DDA
-
     while (hit = false) do
     begin
       if (SideDist.X < SideDist.Y) then
@@ -101,7 +112,33 @@ implementation
         MapPos.Y  += Step.Y;
         side := true;
       end;
-      if (GameMap.Map[MapPos.x][MapPos.y] > 0) then hit := true;
+      if (GameMap.Map[MapPos.x][MapPos.y] > 0) then
+      begin
+        if ( TextureExists(@Textures[GameMap.Map[MapPos.x][MapPos.y]]) and (Textures[GameMap.Map[MapPos.x][MapPos.y]].Transparent = true)) then
+        begin
+         if (StackLoad < STACK_LOAD_MAX) then
+           begin
+           inc(StackLoad);
+
+           RenderStack[StackLoad].CMapPos.X := MapPos.X;
+           RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
+           RenderStack[StackLoad].CSide := side;
+           // calculating perpWallDist
+           if (RenderStack[StackLoad].CSide = false) then
+             RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
+           else
+             RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+           // and WallX too
+           if side then
+             RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+           else
+             RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+           RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+           end;
+        end
+        else
+          hit := true;
+      end;
     end;
 
     if (side = false) then
@@ -121,7 +158,7 @@ implementation
   procedure TRaycaster.DrawStripe(AScreenX: integer);
   var
     WallColor: TColorRGB;
-    LineHeight,DrawStart,drawEnd, TexIndex: integer;
+    LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
   begin
     LineHeight := floor(ScreenHeight/perpWallDist);
     DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
@@ -139,6 +176,19 @@ implementation
     end
     else
       verLine(AScreenX,DrawStart,DrawEnd,WallColor);
+
+    for i:=StackLoad downto 1 do
+    begin
+      LineHeight := floor(ScreenHeight/RenderStack[i].CPerpWallDist);
+      DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
+      DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
+      TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
+
+      if (RenderStack[StackLoad].CSide) then
+         SetTextureColorMod(@Textures[TexIndex], 127, 127, 127);
+      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex]);
+      SetTextureColorMod(@Textures[TexIndex], 255, 255, 255);
+    end;
   end;
 
   procedure TRaycaster.DrawFrame;

@@ -8,7 +8,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="sdl2;SquallSound"/>
+      <OtherUnitFiles Value="libraries\SquallSound;libraries\sdl2"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -43,7 +43,7 @@
         </Target>
         <SearchPaths>
           <IncludeFiles Value="$(ProjOutDir)"/>
-          <OtherUnitFiles Value="sdl2;SquallSound"/>
+          <OtherUnitFiles Value="libraries\SquallSound;libraries\sdl2"/>
           <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
         </SearchPaths>
         <Parsing>
