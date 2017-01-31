@@ -5,3 +5,4 @@ lib/
 *.lps
 *.dll
 backup/
+*.dbg

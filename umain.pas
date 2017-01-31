@@ -10,6 +10,7 @@ uses
 
 begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (collision isn''t good)');
+  InitTextures;
   while (not done) do Raycaster.DrawFrame;
   FinishSoundModule;
   FinishGraphicModule;

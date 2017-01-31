@@ -5,7 +5,7 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugraphic, ugame;
+  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame;
 
 type
   TRaycaster = record
@@ -13,7 +13,7 @@ type
       perpWallDist: double;
       MapPos: TPoint;
       side: boolean;
-      Time,OldTime, FrameTime: double;
+      Time,OldTime, FrameTime, WallX: double;
     public
       VPlane: TFloatPoint;
       ScreenWidth,ScreenHeight: integer;
@@ -28,6 +28,8 @@ type
 
 var
   Raycaster: TRaycaster;
+  Textures : array[1..10] of TTexture;
+procedure InitTextures;
 
 implementation
 
@@ -94,25 +96,33 @@ implementation
       perpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
     else
       perpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+
+    //calculate value of wallX in range 0.0 - 1.0
+    //where exactly the wall was hit
+    if side then
+      WallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+    else
+      WallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+    WallX := WallX - floor(WallX);
   end;
 
   procedure TRaycaster.DrawStripe(AScreenX: integer);
   var
     WallColor: TColorRGB;
-    LineHeight,DrawStart,drawEnd: integer;
+    LineHeight,DrawStart,drawEnd, TexIndex: integer;
   begin
     LineHeight := floor(ScreenHeight/perpWallDist);
     DrawStart := max(0,floor(-LineHeight / 2 + ScreenHeight / 2));
     DrawEnd := min(ScreenHeight - 1,floor(LineHeight / 2 + ScreenHeight / 2));
 
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
-    case GameMap.Map[MapPos.X][MapPos.Y] of
-      1: WallColor := RGB_Red;
-      2: WallColor := RGB_Green;
-      3: WallColor := RGB_Teal;
-    end;
     if (side) then WallColor := WallColor / 2;
-    verLine(AScreenX,DrawStart,DrawEnd,WallColor);
+    TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
+    //writeln(TexIndex, ' ', AScreenX);
+    if (TextureExists(@Textures[TexIndex])) then
+      DrawStrip(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex])
+    else
+      verLine(AScreenX,DrawStart,DrawEnd,WallColor);
   end;
 
   procedure TRaycaster.DrawFrame;
@@ -121,13 +131,13 @@ implementation
   begin
     drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
     drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
-    lock;
+    //lock;
     for ScreenX := 0 to ScreenWidth do
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
     end;
-    unlock;
+    //unlock;
     DrawFps;
     redraw;
     cls;
@@ -187,9 +197,19 @@ implementation
     end;
   end;
 
+  procedure InitTextures;
+  begin
+    Textures[1] := LoadTexture(renderer, 'greystone.bmp');
+    Textures[2] := LoadTexture(renderer, 'colorstone.bmp');
+    Textures[3] := LoadTexture(renderer, 'eagle.bmp');
+    Textures[8] := LoadTexture(renderer, 'redbrick.bmp');
+    //writeln(Textures[8].Width);
+  end;
+
 initialization
   Raycaster.ScreenWidth := 1024;
   Raycaster.ScreenHeight:= 768;
   Raycaster.VPlane := FloatPoint(0.0,0.66);
   Raycaster.Time := 0;
+
 end.

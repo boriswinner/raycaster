@@ -7,7 +7,7 @@ interface
 //I'll use SDL2 because I can.
 
 uses
-  Classes, SysUtils, SDL2;
+  Classes, SysUtils, SDL2, utexture;
 
 type
 
@@ -69,6 +69,7 @@ function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+procedure DrawStrip(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
 procedure lock;
 procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
@@ -78,39 +79,6 @@ procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
 procedure initFont;
 procedure writeText(text: string; x, y:integer);
-
-{
- TODO: PORT THIS!!!
-
-ColorRGB operator+(const ColorRGB& color, const ColorRGB& color2);
-ColorRGB operator-(const ColorRGB& color, const ColorRGB& color2);
-ColorRGB operator*(const ColorRGB& color, int a);
-ColorRGB operator*(int a, const ColorRGB& color);
-bool operator==(const ColorRGB& color, const ColorRGB& color2);
-bool operator!=(const ColorRGB& color, const ColorRGB& color2);
-
-//a color with 3 components: h, s and l
-struct ColorHSL
-[
-  int h;
-  int s;
-  int l;
-
-  ColorHSL(Uint8 h, Uint8 s, Uint8 l);
-  ColorHSL();
-];
-
-//a color with 3 components: h, s and v
-struct ColorHSV
-[
-  int h;
-  int s;
-  int v;
-
-  ColorHSV(Uint8 h, Uint8 s, Uint8 v);
-  ColorHSV();
-];
-}
 
 implementation
 //TColorRGB stuff first
@@ -146,7 +114,7 @@ end;
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
+  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_TARGETTEXTURE; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
 begin
   screen_width := width;
   screen_height := height;
@@ -223,13 +191,30 @@ end;
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
 var i: integer;
 begin
-  //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  //SDL_RenderDrawLine(renderer, x, y1, x, y2);
-  for i := y1 to y2 do
+  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  SDL_RenderDrawLine(renderer, x, y1, x, y2);
+  {for i := y1 to y2 do
   begin
     pSet(x,i,color);
-  end;
+  end;}
 
+end;
+
+procedure DrawStrip(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
+var
+  src, dst: TSDL_Rect;
+begin
+  //writeln('DrawStrip ', TexCoordX, ' ', Tex^.Width);
+  src.x := SInt32(Trunc(TexCoordX * double(Tex^.Width)));
+  src.y := 0;
+  src.w := 1;
+  src.h := Tex^.Height;
+
+  dst.x := DrawX;
+  dst.y := y1;
+  dst.w := 1;
+  dst.h := y2-y1+1;
+  SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
 end;
 
 procedure lock;
