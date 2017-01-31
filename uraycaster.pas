@@ -33,6 +33,17 @@ procedure InitTextures;
 
 implementation
 
+  procedure InitTextures;
+  begin
+    Textures[1] := LoadTexture(renderer, 'greystone.bmp');
+    Textures[2] := LoadTexture(renderer, 'colorstone.bmp');
+    Textures[3] := LoadTexture(renderer, 'eagle.bmp');
+    Textures[4] := LoadTexture(renderer, 'reallybig.bmp');
+    Textures[8] := LoadTexture(renderer, 'redbrick.bmp');
+    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp');
+    //writeln(Textures[8].Width);
+  end;
+
   procedure TRaycaster.CalculateStripe(AScreenX: integer);
   var
     CameraX: double;
@@ -199,15 +210,6 @@ implementation
       VPlane.X := VPlane.X * cos(rotSpeed) - VPlane.Y * sin(rotSpeed);
       VPlane.Y := OldVPlane.X * sin(rotSpeed) + VPlane.Y * cos(rotSpeed);
     end;
-  end;
-
-  procedure InitTextures;
-  begin
-    Textures[1] := LoadTexture(renderer, 'greystone.bmp');
-    Textures[2] := LoadTexture(renderer, 'colorstone.bmp');
-    Textures[3] := LoadTexture(renderer, 'eagle.bmp');
-    Textures[8] := LoadTexture(renderer, 'redbrick.bmp');
-    //writeln(Textures[8].Width);
   end;
 
 initialization
