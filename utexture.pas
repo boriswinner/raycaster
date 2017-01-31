@@ -19,6 +19,8 @@ function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transpare
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
+var
+  TexturePath: string;
 implementation
 
 function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
@@ -27,13 +29,13 @@ var
 begin
    Result.Width:=0;
    Result.Height:=0;
-   bmp := SDL_LoadBMP(PAnsiChar('./res/textures/' + FileName));
+   bmp := SDL_LoadBMP(PAnsiChar(TexturePath + FileName));
    if bmp = nil then
      exit;
 
-   if Transparent then
+   if _Transparent then
    begin
-     //SDL_SetColorKey(bmp, );
+     SDL_SetColorKey(bmp, SDL_TRUE, SDL_MapRGB(bmp^.format, 255, 0, 255)); //magenta is transparent
    end;
 
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
@@ -43,6 +45,7 @@ begin
 
    SDL_QueryTexture(Result.RawTexture, nil, nil, @Result.Width, @Result.Height);
    Result.RenderTarget := _RenderTarget;
+   Result.Solid := _Solid;
 end;
 
 procedure DestroyTexture(TextureToDestroy : PTexture);
@@ -61,5 +64,7 @@ begin
   Result := (Target^.Height <> 0) and (Target^.Width <> 0);
 end;
 
+initialization
+  TexturePath := './res/textures/';
 end.
 

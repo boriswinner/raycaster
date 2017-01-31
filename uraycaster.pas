@@ -29,7 +29,7 @@ type
 
 var
   Raycaster : TRaycaster;
-  Textures  : array[1..10] of TTexture;
+  Textures  : array[1..10] of TTexture; //TODO dynamic loading
   //Doors     : array of TDoor;
 procedure InitTextures;
 
@@ -43,7 +43,6 @@ implementation
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
     Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
-    //writeln(Textures[8].Width);
   end;
 
   procedure TRaycaster.CalculateStripe(AScreenX: integer);

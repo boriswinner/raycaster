@@ -55,6 +55,8 @@ var
   pitch         : UInt32;
   font_tex      : PSDL_Texture;
 
+  FontPath: Pchar;
+
 //TODO clean up that shit
 
 procedure FinishGraphicModule; inline;
@@ -78,7 +80,7 @@ procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
-procedure initFont;
+procedure initFont(APath: PChar);
 procedure writeText(text: string; x, y:integer);
 
 implementation
@@ -149,7 +151,7 @@ begin
   bgFormat := SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
   scr := SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
   SDL_SetTextureBlendMode(scr, SDL_BLENDMODE_BLEND);
-  initFont;
+  initFont(FontPath);
 end;
 
 //Reads keys to array.
@@ -202,18 +204,13 @@ begin
   dy2 := min(screen_height - 1, y2);
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
   SDL_RenderDrawLine(renderer, x, dy1, x, dy2);
-  {for i := y1 to y2 do
-  begin
-    pSet(x,i,color);
-  end;}
-
 end;
+
 //draws a stripe from texture
 procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
 var
   src, dst: TSDL_Rect;
 begin
-  //writeln('DrawStrip ', TexCoordX, ' ', Tex^.Width);
   src.x := SInt32(Trunc(TexCoordX * double(Tex^.Width)));
   src.y := 0;
   src.w := 1;
@@ -267,7 +264,7 @@ begin
   SDL_RenderFillRect(renderer,@r);
 end;
 
-//redraw the frame. TODO rewrite for textured mode
+//redraw the frame.
 procedure redraw; inline;
 begin
   //SDL_RenderCopy(renderer, scr, nil, nil);
@@ -276,7 +273,7 @@ begin
   //SDL_SetRenderTarget(renderer, scr);
 end;
 
-//clear screen. TODO rewrite for textured mode
+//clear screen.
 procedure cls(color: TColorRGB); overload;
 begin
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
@@ -288,10 +285,10 @@ begin
 end;
 
 //init font to make it usable
-procedure initFont;
+procedure initFont(APath: PChar);
 begin
   // TODO LOAD FONTS FROM FILE
-  font := SDL_LoadBMP('./res/good_font.bmp');
+  font := SDL_LoadBMP(APath);
   if font = nil then
   begin
     writeln('Can''t get the font file. ');
@@ -335,6 +332,6 @@ begin
 end;
 
 initialization
-
+FontPath := './res/fonts/good_font.bmp';
 end.
 
