@@ -112,8 +112,8 @@ implementation
     LineHeight,DrawStart,drawEnd, TexIndex: integer;
   begin
     LineHeight := floor(ScreenHeight/perpWallDist);
-    DrawStart := max(0,floor(-LineHeight / 2 + ScreenHeight / 2));
-    DrawEnd := min(ScreenHeight - 1,floor(LineHeight / 2 + ScreenHeight / 2));
+    DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
+    DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
 
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
@@ -122,7 +122,7 @@ implementation
     begin
       if (side) then
          SetTextureColorMod(@Textures[TexIndex], 127, 127, 127);
-      DrawStrip(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex]);
+      DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex]);
       SetTextureColorMod(@Textures[TexIndex], 255, 255, 255)
     end
     else

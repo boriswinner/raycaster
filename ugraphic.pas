@@ -7,7 +7,7 @@ interface
 //I'll use SDL2 because I can.
 
 uses
-  Classes, SysUtils, SDL2, utexture;
+  Classes, SysUtils, SDL2, utexture, Math;
 
 type
 
@@ -70,7 +70,7 @@ function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
 procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
-procedure DrawStrip(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
 procedure lock;
 procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
@@ -196,18 +196,20 @@ end;
 
 //vertical line
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
-var i: integer;
+var i, dy1, dy2: integer;
 begin
+  dy1 := max(0, y1);
+  dy2 := min(screen_height - 1, y2);
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  SDL_RenderDrawLine(renderer, x, y1, x, y2);
+  SDL_RenderDrawLine(renderer, x, dy1, x, dy2);
   {for i := y1 to y2 do
   begin
     pSet(x,i,color);
   end;}
 
 end;
-
-procedure DrawStrip(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
+//draws a stripe from texture
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
 var
   src, dst: TSDL_Rect;
 begin
@@ -224,6 +226,7 @@ begin
   SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
 end;
 
+//lock screen overlay in order to be able to draw pixel-by-pixel
 procedure lock;
 var bgColor, i: UInt32;
 begin
@@ -232,7 +235,7 @@ begin
   for i:=0 to screen_width*screen_height-1 do
     pixels[i] := bgColor;
 end;
-
+//unlock screen overlay to finally draw changes
 procedure unlock;
 begin
   SDL_UnlockTexture(scr);
