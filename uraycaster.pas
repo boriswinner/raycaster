@@ -5,7 +5,7 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame;
+  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor;
 
 type
   TRaycaster = record
@@ -22,25 +22,27 @@ type
       procedure CalculateStripe(AScreenX: integer);
       procedure DrawStripe(AScreenX: integer);
       procedure DrawFrame;
+      procedure DrawHud;
       procedure DrawFPS;
       procedure HandleInput;//move it to another place
   end;
 
 var
-  Raycaster: TRaycaster;
-  Textures : array[1..10] of TTexture;
+  Raycaster : TRaycaster;
+  Textures  : array[1..10] of TTexture;
+  //Doors     : array of TDoor;
 procedure InitTextures;
 
 implementation
 
   procedure InitTextures;
   begin
-    Textures[1] := LoadTexture(renderer, 'greystone.bmp');
-    Textures[2] := LoadTexture(renderer, 'colorstone.bmp');
-    Textures[3] := LoadTexture(renderer, 'eagle.bmp');
-    Textures[4] := LoadTexture(renderer, 'reallybig.bmp');
-    Textures[8] := LoadTexture(renderer, 'redbrick.bmp');
-    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp');
+    Textures[1] := LoadTexture(renderer, 'greystone.bmp', false, true);
+    Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
+    Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
+    Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
+    Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
+    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
     //writeln(Textures[8].Width);
   end;
 
@@ -146,17 +148,21 @@ implementation
   begin
     drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
     drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
-    //lock;
     for ScreenX := 0 to ScreenWidth do
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
     end;
-    //unlock;
+    DrawHud;
     DrawFps;
     redraw;
     cls;
     HandleInput;
+  end;
+
+  procedure TRaycaster.DrawHud;
+  begin
+    //TODO HUD
   end;
 
   procedure TRaycaster.DrawFPS;

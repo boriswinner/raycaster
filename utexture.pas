@@ -10,17 +10,18 @@ uses
 type TTexture = record
   RawTexture : PSDL_Texture;
   Width, Height : Int32;
+  Transparent, Solid: boolean;
   RenderTarget : PSDL_Renderer;
 end;
 type PTexture = ^TTexture;
 
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string) : TTexture;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
 implementation
 
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string) : TTexture;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
 var
   bmp : PSDL_Surface;
 begin
@@ -29,6 +30,11 @@ begin
    bmp := SDL_LoadBMP(PAnsiChar('./res/textures/' + FileName));
    if bmp = nil then
      exit;
+
+   if Transparent then
+   begin
+     //SDL_SetColorKey(bmp, );
+   end;
 
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
    if Result.RawTexture = nil then
