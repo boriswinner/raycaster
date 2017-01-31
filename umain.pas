@@ -11,6 +11,7 @@ uses
 begin
   screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (collision isn''t good)');
   while (not done) do Raycaster.DrawFrame;
-  finish;
+  FinishSoundModule;
+  FinishGraphicModule;
 end.
 

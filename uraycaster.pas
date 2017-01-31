@@ -121,32 +121,27 @@ implementation
   begin
     drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
     drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
+    lock;
     for ScreenX := 0 to ScreenWidth do
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
     end;
+    unlock;
     DrawFps;
     redraw;
-    cls;  //not called in redraw()
+    cls;
     HandleInput;
   end;
 
   procedure TRaycaster.DrawFPS;
-  var i:integer;
   begin
     writeText('by t1meshift & boriswinner',0,0);
-    //writeText('Graphics by t1meshift',0,CHAR_SIZE+1);
 
     OldTime := Time;
     Time := getTicks;
     FrameTime := (time - oldTime) / 1000;
-    writeText('FPS: '+FloatToStr(floor(1/FrameTime*100)/100),0,CHAR_SIZE+1);
-    i := 42;
-    lock;
-    for i := 1 to min(ScreenHeight,ScreenWidth) do
-        pSet(i-1,i-1,RGB_Magenta);
-    unlock;
+    writeText(FloatToStr(floor(1/FrameTime*100)/100)+' FPS',0,CHAR_SIZE+1);
   end;
 
   procedure TRaycaster.HandleInput;
@@ -193,8 +188,8 @@ implementation
   end;
 
 initialization
-  Raycaster.ScreenWidth := 640;
-  Raycaster.ScreenHeight:= 480;
+  Raycaster.ScreenWidth := 1024;
+  Raycaster.ScreenHeight:= 768;
   Raycaster.VPlane := FloatPoint(0.0,0.66);
   Raycaster.Time := 0;
 end.

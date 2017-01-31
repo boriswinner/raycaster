@@ -5,7 +5,7 @@ unit ugame;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath;
+  Classes, SysUtils, Math, GraphMath, usound;
 //GraphMath only for TFLoatPoint, better to write own type
 
 type
@@ -54,5 +54,7 @@ initialization
   Game.VDirection := FloatPoint(-1.0,0.0);
 
   LevelNumber := 1;
+
+  PlayLevelMusic(LevelNumber);
 end.
 

@@ -53,10 +53,11 @@ var
   bgFormat      : PSDL_PixelFormat;
   pixels        : PUInt32;
   pitch         : UInt32;
+  font_tex      : PSDL_Texture;
 
 //TODO clean up that shit
 
-procedure finish; inline;
+procedure FinishGraphicModule; inline;
 function getTicks: UInt64; inline;
 
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
@@ -126,7 +127,7 @@ begin
 end;
 
 //exit program
-procedure finish; inline;
+procedure FinishGraphicModule; inline;
 begin
   SDL_SetRenderTarget(renderer, nil);
   SDL_DestroyTexture(scr);
@@ -137,7 +138,7 @@ begin
 end;
 
 //getTicks from SDL
-function getTicks: UInt64; inline;
+function GetTicks: UInt64; inline;
 begin
   Result := SDL_GetTicks;
 end;
@@ -158,7 +159,7 @@ begin
   if window = nil then
   begin
     writeln('Window error: ', SDL_GetError);
-    finish;
+    FinishGraphicModule;
   end;
 
   renderer := SDL_CreateRenderer(window, -1, RENDER_FLAGS);
@@ -166,7 +167,7 @@ begin
   if renderer = nil then
   begin
     writeln('Renderer error: ', SDL_GetError);
-    finish;
+    FinishGraphicModule;
   end;
 
   if fullscreen then
@@ -222,30 +223,27 @@ end;
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
 var i: integer;
 begin
-  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  SDL_RenderDrawLine(renderer, x, y1, x, y2);
-  {for i := y1 to y2 do
+  //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  //SDL_RenderDrawLine(renderer, x, y1, x, y2);
+  for i := y1 to y2 do
   begin
     pSet(x,i,color);
   end;
-  }
+
 end;
 
 procedure lock;
 var bgColor, i: UInt32;
 begin
   SDL_LockTexture(scr, nil, @pixels, @pitch);
-  bgColor := SDL_MapRGBA(bgFormat, 0, 0, 0, 0); //transparent
+  bgColor := SDL_MapRGBA(bgFormat, 255, 255, 255, 0); //transparent
   for i:=0 to screen_width*screen_height-1 do
     pixels[i] := bgColor;
-  //SDL_UpdateTexture(scr, nil, pixels, pitch); //replace pitch to screen_width just in case
 end;
 
 procedure unlock;
 begin
-  //SDL_UpdateTexture(scr, nil, pixels, screen_width*4);
   SDL_UnlockTexture(scr);
-  //SDL_
   SDL_RenderCopy(renderer, scr, nil, nil);
 end;
 
@@ -306,6 +304,7 @@ begin
   end;
   SDL_ConvertSurfaceFormat(font, SDL_PIXELFORMAT_RGB24, 0);
   SDL_SetColorKey(font, 1, SDL_MapRGB(font^.format, 0, 0, 0)); //make transparent bg
+  font_tex := SDL_CreateTextureFromSurface(renderer,font); // we need this for RenderCopy
 end;
 
 // write text
@@ -313,7 +312,6 @@ procedure writeText(text: string; x, y:integer);
 var
   len, i, row_cnt: integer;
   char_code: byte;
-  font_tex: PSDL_Texture;
   selection, char_rect: TSDL_Rect;
 begin
   //TODO \n support
@@ -330,7 +328,6 @@ begin
   char_rect.h := CHAR_SIZE;
   char_rect.y := y;
 
-  font_tex := SDL_CreateTextureFromSurface(renderer,font); // we need this for RenderCopy
   for i:=1 to Length(text) do
   begin
     char_code := ord(text[i]); // getting char code...
@@ -339,7 +336,7 @@ begin
     char_rect.x := x + (i-1)*CHAR_SIZE; // move next char of string to the right
     SDL_RenderCopy(renderer,font_tex,@selection,@char_rect); // and then we copy our char from font
   end;
-  SDL_DestroyTexture(font_tex); // prevent memory leak
+  //SDL_DestroyTexture(font_tex); // prevent memory leak
 end;
 
 initialization
