@@ -49,6 +49,10 @@ var
   scr           : PSDL_Texture;
   font          : PSDL_Surface;
   inkeys        : PUInt8;
+  pFormat,
+  bgFormat      : PSDL_PixelFormat;
+  pixels        : PUInt32;
+  pitch         : UInt32;
 
 //TODO clean up that shit
 
@@ -64,6 +68,8 @@ function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+procedure lock;
+procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
 procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
@@ -139,7 +145,7 @@ end;
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC or SDL_RENDERER_TARGETTEXTURE; //HW accel + VSync
+  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
 begin
   screen_width := width;
   screen_height := height;
@@ -169,9 +175,10 @@ begin
     if SDL_RenderSetLogicalSize(renderer, screen_width, screen_height)<>0 then
       writeln('logical size error: ', SDL_GetError);
   end;
-
-  scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_TARGET, width, height);
-  SDL_SetRenderTarget(renderer, scr);
+  pFormat := SDL_AllocFormat(SDL_GetWindowPixelFormat(window));
+  bgFormat := SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+  scr := SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+  SDL_SetTextureBlendMode(scr, SDL_BLENDMODE_BLEND);
   initFont;
 end;
 
@@ -213,17 +220,49 @@ end;
 
 //vertical line
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+var i: integer;
 begin
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
   SDL_RenderDrawLine(renderer, x, y1, x, y2);
+  {for i := y1 to y2 do
+  begin
+    pSet(x,i,color);
+  end;
+  }
+end;
+
+procedure lock;
+var bgColor, i: UInt32;
+begin
+  SDL_LockTexture(scr, nil, @pixels, @pitch);
+  bgColor := SDL_MapRGBA(bgFormat, 0, 0, 0, 0); //transparent
+  for i:=0 to screen_width*screen_height-1 do
+    pixels[i] := bgColor;
+  //SDL_UpdateTexture(scr, nil, pixels, pitch); //replace pitch to screen_width just in case
+end;
+
+procedure unlock;
+begin
+  //SDL_UpdateTexture(scr, nil, pixels, screen_width*4);
+  SDL_UnlockTexture(scr);
+  //SDL_
+  SDL_RenderCopy(renderer, scr, nil, nil);
 end;
 
 //set pixel
 procedure pSet(x, y: integer; color: TColorRGB);
+var
+  //pitch: integer;
+  pColor, pixelpos: UInt32;
+  //pixels: PUInt32;
 begin
   if (x < 0) or (y < 0) or (x >= screen_width) or (y >= screen_height) then exit;
-  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  SDL_RenderDrawPoint(renderer, x, y);
+  //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  //SDL_RenderDrawPoint(renderer, x, y);
+  pColor := SDL_MapRGBA(bgFormat, color.r, color.g, color.b, 255);
+
+  pixelpos := screen_width*y+x;
+  pixels[pixelpos] := pColor;
 end;
 
 //draw rectangular
@@ -235,17 +274,16 @@ begin
   SDL_RenderFillRect(renderer,@r);
 end;
 
-//redraw the frame.
+//redraw the frame. TODO rewrite for textured mode
 procedure redraw; inline;
 begin
-  SDL_SetRenderTarget(renderer, nil);
-  SDL_RenderCopy(renderer, scr, nil, nil);
+  //SDL_RenderCopy(renderer, scr, nil, nil);
   SDL_RenderPresent(renderer);
-  cls;
-  SDL_SetRenderTarget(renderer, scr);
+  //cls;
+  //SDL_SetRenderTarget(renderer, scr);
 end;
 
-//clear screen
+//clear screen. TODO rewrite for textured mode
 procedure cls(color: TColorRGB); overload;
 begin
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
@@ -253,7 +291,7 @@ begin
 end;
 procedure cls; inline; overload;
 begin
-  cls(RGB_Black); //yaaaaay shitty code
+  cls(RGB_Black);
 end;
 
 //init font to make it usable
@@ -282,8 +320,8 @@ begin
   len := CHAR_SIZE * Length(text);
   row_cnt := font^.w div CHAR_SIZE;
 
-  if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
-    exit; // if our text is too big then we don't work
+  //if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
+  //  exit; // if our text is too big then we don't work
 
   selection.w := CHAR_SIZE;
   selection.h := CHAR_SIZE;

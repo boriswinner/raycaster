@@ -22,7 +22,7 @@
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="2">
-      <Item1 Name="Release" Default="True"/>
+      <Item1 Name="Default" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
           <Version Value="11"/>
@@ -32,7 +32,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="sdl2"/>
+            <OtherUnitFiles Value="sdl2;SquallSound"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -70,7 +70,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="7">
       <Unit0>
         <Filename Value="umain.pas"/>
         <IsPartOfProject Value="True"/>
@@ -87,6 +87,18 @@
         <Filename Value="ugraphic.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="SquallSound\Squall.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="SquallSound\SquallSound.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="usound.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -97,26 +109,21 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="sdl2"/>
+      <OtherUnitFiles Value="sdl2;SquallSound"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
-      <SmartLinkUnit Value="True"/>
-      <Optimizations>
-        <OptimizationLevel Value="3"/>
-      </Optimizations>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
     </CodeGeneration>
     <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="False"/>
-      </Debugging>
-      <LinkSmart Value="True"/>
       <Options>
-        <Win32>
-          <GraphicApplication Value="True"/>
-        </Win32>
+        <PassLinkerOptions Value="True"/>
       </Options>
     </Linking>
+    <Other>
+      <CustomOptions Value="-gh"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

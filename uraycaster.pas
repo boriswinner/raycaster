@@ -128,19 +128,25 @@ implementation
     end;
     DrawFps;
     redraw;
-    //cls;  //called in redraw()
+    cls;  //not called in redraw()
     HandleInput;
   end;
 
   procedure TRaycaster.DrawFPS;
+  var i:integer;
   begin
-    writeText('Raycaster v.0.2 by t1meshift & boriswinner',0,0);
-    writeText('Graphics by t1meshift',0,CHAR_SIZE+1);
+    writeText('by t1meshift & boriswinner',0,0);
+    //writeText('Graphics by t1meshift',0,CHAR_SIZE+1);
 
     OldTime := Time;
     Time := getTicks;
     FrameTime := (time - oldTime) / 1000;
-    writeText('FPS: '+FloatToStr(floor(1/FrameTime*100)/100),0,2*CHAR_SIZE+1);
+    writeText('FPS: '+FloatToStr(floor(1/FrameTime*100)/100),0,CHAR_SIZE+1);
+    i := 42;
+    lock;
+    for i := 1 to min(ScreenHeight,ScreenWidth) do
+        pSet(i-1,i-1,RGB_Magenta);
+    unlock;
   end;
 
   procedure TRaycaster.HandleInput;
@@ -187,8 +193,8 @@ implementation
   end;
 
 initialization
-  Raycaster.ScreenWidth := 800;
-  Raycaster.ScreenHeight:= 600;
+  Raycaster.ScreenWidth := 640;
+  Raycaster.ScreenHeight:= 480;
   Raycaster.VPlane := FloatPoint(0.0,0.66);
   Raycaster.Time := 0;
 end.
