@@ -24,22 +24,18 @@ function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string) : TTexture
 var
   bmp : PSDL_Surface;
 begin
+   Result.Width:=0;
+   Result.Height:=0;
    bmp := SDL_LoadBMP(PAnsiChar('./res/textures/' + FileName));
    if bmp = nil then
-     exit; // null ptr on error
+     exit;
+
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
    if Result.RawTexture = nil then
-     begin
-       //writeln('LoadTexture() ',SDL_GetError());
-       Result.Width:=0;
-       Result.Height:=0;
-       exit;
-     end;
+     exit;
    SDL_FreeSurface(bmp);
 
    SDL_QueryTexture(Result.RawTexture, nil, nil, @Result.Width, @Result.Height);
-   //writeln('BAAAAA');
-   //writeln('LoadTexture() ',SDL_GetError());
    Result.RenderTarget := _RenderTarget;
 end;
 

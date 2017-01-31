@@ -49,7 +49,7 @@ implementation
     DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
 
 
-    if (RayDir.Y = 0) then RayDir.Y := 0.00001; //shitty hotfix!
+    if (RayDir.Y = 0) then RayDir.Y := 0.000001; //shitty hotfix!
 
     DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
     hit := false;
@@ -118,9 +118,13 @@ implementation
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
     TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
-    //writeln(TexIndex, ' ', AScreenX);
     if (TextureExists(@Textures[TexIndex])) then
-      DrawStrip(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex])
+    begin
+      if (side) then
+         SetTextureColorMod(@Textures[TexIndex], 127, 127, 127);
+      DrawStrip(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex]);
+      SetTextureColorMod(@Textures[TexIndex], 255, 255, 255)
+    end
     else
       verLine(AScreenX,DrawStart,DrawEnd,WallColor);
   end;

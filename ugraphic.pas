@@ -68,6 +68,7 @@ function  keyDown(key: TSDL_KeyCode): boolean; overload;
 function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
+procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
 procedure DrawStrip(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
 procedure lock;
@@ -185,6 +186,12 @@ end;
 function done: boolean; inline; overload;
 begin
   Result := done(true, true);
+end;
+
+//modifies color palette of texture
+procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
+begin
+  SDL_SetTextureColorMod(Tex^.RawTexture, R, G, B);
 end;
 
 //vertical line
