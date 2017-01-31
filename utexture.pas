@@ -18,6 +18,8 @@ function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string) : TTexture
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
+var
+  TexturePath: string;
 implementation
 
 function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string) : TTexture;
@@ -26,7 +28,7 @@ var
 begin
    Result.Width:=0;
    Result.Height:=0;
-   bmp := SDL_LoadBMP(PAnsiChar('./res/textures/' + FileName));
+   bmp := SDL_LoadBMP(PAnsiChar(TexturePath + FileName));
    if bmp = nil then
      exit;
 
@@ -55,5 +57,7 @@ begin
   Result := (Target^.Height <> 0) and (Target^.Width <> 0);
 end;
 
+initialization
+  TexturePath := './res/textures/';
 end.
 

@@ -55,6 +55,8 @@ var
   pitch         : UInt32;
   font_tex      : PSDL_Texture;
 
+  FontPath: Pchar;
+
 //TODO clean up that shit
 
 procedure FinishGraphicModule; inline;
@@ -78,7 +80,7 @@ procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
-procedure initFont;
+procedure initFont(APath: PChar);
 procedure writeText(text: string; x, y:integer);
 
 implementation
@@ -149,7 +151,7 @@ begin
   bgFormat := SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
   scr := SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
   SDL_SetTextureBlendMode(scr, SDL_BLENDMODE_BLEND);
-  initFont;
+  initFont(FontPath);
 end;
 
 //Reads keys to array.
@@ -288,10 +290,10 @@ begin
 end;
 
 //init font to make it usable
-procedure initFont;
+procedure initFont(APath: PChar);
 begin
   // TODO LOAD FONTS FROM FILE
-  font := SDL_LoadBMP('./res/good_font.bmp');
+  font := SDL_LoadBMP(APath);
   if font = nil then
   begin
     writeln('Can''t get the font file. ');
@@ -335,6 +337,6 @@ begin
 end;
 
 initialization
-
+FontPath := './res/fonts/good_font.bmp';
 end.
 

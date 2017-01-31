@@ -41,7 +41,6 @@ implementation
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp');
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp');
     Textures[9] := LoadTexture(renderer, 'bigtexture.bmp');
-    //writeln(Textures[8].Width);
   end;
 
   procedure TRaycaster.CalculateStripe(AScreenX: integer);

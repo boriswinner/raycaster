@@ -6,10 +6,11 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, uraycaster, ugame, ugraphic, usound;
+  Classes, Forms, Interfaces, uraycaster, ugame, ugraphic, usound,
+  uconfigurator;
 
 begin
-  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, false, 'Raycaster (collision isn''t good)');
+  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, FullscreenMode, 'Raycaster (collision isn''t good)');
   InitTextures;
   while (not done) do Raycaster.DrawFrame;
   FinishSoundModule;
