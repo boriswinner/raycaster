@@ -24,6 +24,7 @@
         <StackChecks Value="True"/>
       </Checks>
       <TargetCPU Value="i386"/>
+      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Linking>
       <Debugging>
@@ -63,6 +64,8 @@
           <Optimizations>
             <OptimizationLevel Value="3"/>
           </Optimizations>
+          <VerifyObjMethodCallValidity Value="True"/>
+          <TargetOS Value="win32"/>
         </CodeGeneration>
         <Linking>
           <Debugging>
