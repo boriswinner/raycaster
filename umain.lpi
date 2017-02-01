@@ -14,6 +14,7 @@
       <Title Value="Raycaster"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
+      <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -50,6 +51,7 @@
             </Checks>
             <VerifyObjMethodCallValidity Value="True"/>
             <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
             <Optimizations>
               <OptimizationLevel Value="3"/>
             </Optimizations>
@@ -84,7 +86,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="8">
       <Unit0>
         <Filename Value="umain.pas"/>
         <IsPartOfProject Value="True"/>
@@ -113,6 +115,13 @@
         <Filename Value="udoor.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="uconfigurator.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ConfiguratorForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

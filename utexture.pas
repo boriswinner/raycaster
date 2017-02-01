@@ -10,7 +10,7 @@ uses
 type TTexture = record
   RawTexture : PSDL_Texture;
   Width, Height : Int32;
-  Transparent, Solid: boolean;
+  Transparent, Solid : boolean;
   RenderTarget : PSDL_Renderer;
 end;
 type PTexture = ^TTexture;
@@ -41,6 +41,7 @@ begin
    Result.Transparent := _Transparent;
 
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
+
    if Result.RawTexture = nil then
      exit;
    SDL_FreeSurface(bmp);

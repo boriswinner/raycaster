@@ -55,12 +55,14 @@ var
   pitch         : UInt32;
   font_tex      : PSDL_Texture;
 
-  FontPath: Pchar;
+  VSyncFlag     : Boolean;
+  FontPath      : Pchar;
 
 //TODO clean up that shit
 
 procedure FinishGraphicModule; inline;
 function getTicks: UInt64; inline;
+procedure delay (ms: UInt32); inline;
 
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
 
@@ -70,9 +72,10 @@ function  keyDown(key: TSDL_KeyCode): boolean; overload;
 function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
-procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
+//procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
-procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
 procedure lock;
 procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
@@ -114,11 +117,18 @@ begin
   Result := SDL_GetTicks;
 end;
 
+//delays program
+procedure delay (ms: UInt32); inline;
+begin
+  SDL_Delay(ms);
+end;
+
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
-const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_TARGETTEXTURE; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
+var
+  RENDER_FLAGS : UInt32;
 begin
+  RENDER_FLAGS := SDL_RENDERER_ACCELERATED or (SDL_RENDERER_PRESENTVSYNC and (UInt8(VSyncFlag) shl 2)); //HW accel + VSync
   screen_width := width;
   screen_height := height;
 
@@ -176,7 +186,7 @@ end;
 function done(quit_if_esc, delay: boolean): boolean;
 begin
   //quit_if_esc does not work!
-  if delay then SDL_Delay(5);
+  if delay then SDL_Delay(3); //do NOT set it on 2 or less
   readKeys;
   while SDL_PollEvent(@event)<>0 do
   begin
@@ -198,7 +208,7 @@ end;
 
 //vertical line
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
-var i, dy1, dy2: integer;
+var dy1, dy2: integer;
 begin
   dy1 := max(0, y1);
   dy2 := min(screen_height - 1, y2);
@@ -207,7 +217,7 @@ begin
 end;
 
 //draws a stripe from texture
-procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture);
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
 var
   src, dst: TSDL_Rect;
 begin
@@ -221,6 +231,13 @@ begin
   dst.w := 1;
   dst.h := y2-y1+1;
   SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
+end;
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
+begin
+  if Side then
+    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127);
+  DrawTexStripe(DrawX,y1,y2,TexCoordX,Tex);
+  SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
 end;
 
 //lock screen overlay in order to be able to draw pixel-by-pixel
@@ -242,9 +259,7 @@ end;
 //set pixel
 procedure pSet(x, y: integer; color: TColorRGB);
 var
-  //pitch: integer;
   pColor, pixelpos: UInt32;
-  //pixels: PUInt32;
 begin
   if (x < 0) or (y < 0) or (x >= screen_width) or (y >= screen_height) then exit;
   //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
@@ -267,10 +282,7 @@ end;
 //redraw the frame.
 procedure redraw; inline;
 begin
-  //SDL_RenderCopy(renderer, scr, nil, nil);
   SDL_RenderPresent(renderer);
-  //cls;
-  //SDL_SetRenderTarget(renderer, scr);
 end;
 
 //clear screen.
@@ -333,5 +345,6 @@ end;
 
 initialization
 FontPath := './res/fonts/good_font.bmp';
+VSyncFlag := false;
 end.
 

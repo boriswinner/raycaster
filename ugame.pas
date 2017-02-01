@@ -55,6 +55,5 @@ initialization
 
   LevelNumber := 1;
 
-  PlayLevelMusic(LevelNumber);
 end.
 

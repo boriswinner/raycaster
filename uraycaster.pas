@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor;
 
-const STACK_LOAD_MAX = 5;
+const STACK_LOAD_MAX = 64;
 type
   RenderInfo = record
     CPerpWallDist, CWallX: double;
@@ -24,6 +24,7 @@ type
       RenderStack: array[0..STACK_LOAD_MAX] of RenderInfo;
       StackLoad: UInt8;
     public
+      FOV : Int16;
       VPlane: TFloatPoint;
       ScreenWidth,ScreenHeight: integer;
 
@@ -51,7 +52,9 @@ implementation
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
-    Textures[5] := LoadTexture(renderer, 'door.bmp', true, true);
+    Textures[5] := LoadTexture(renderer, 'door.bmp', true, false);
+    Textures[6] := LoadTexture(renderer, 'fence.bmp', true, false);
+    Textures[7] := LoadTexture(renderer, 'test.bmp', true, false);
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
     Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
   end;
@@ -112,32 +115,44 @@ implementation
         MapPos.Y  += Step.Y;
         side := true;
       end;
-      if (GameMap.Map[MapPos.x][MapPos.y] > 0) then
+      // checking on map borders
+      if ((MapPos.x > 0) and (MapPos.x < Length(GameMap.Map)-1) and (MapPos.y > 0) and (MapPos.y < Length(GameMap.Map[MapPos.x])-1)) then
       begin
-        if ( TextureExists(@Textures[GameMap.Map[MapPos.x][MapPos.y]]) and (Textures[GameMap.Map[MapPos.x][MapPos.y]].Transparent = true)) then
+        // if we hit a wall
+        if (GameMap.Map[MapPos.x][MapPos.y] > 0) then
         begin
-         if (StackLoad < STACK_LOAD_MAX) then
-           begin
-           inc(StackLoad);
+          // check if it's a texture and it supports transparency
+          if ( TextureExists(@Textures[GameMap.Map[MapPos.x][MapPos.y]]) and (Textures[GameMap.Map[MapPos.x][MapPos.y]].Transparent = true)) then
+          begin
+            //if it is, then we check on stack bounds
+            if (StackLoad < STACK_LOAD_MAX) then
+            begin
+            inc(StackLoad);
+            //doing calculations for stack elems
 
-           RenderStack[StackLoad].CMapPos.X := MapPos.X;
-           RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
-           RenderStack[StackLoad].CSide := side;
-           // calculating perpWallDist
-           if (RenderStack[StackLoad].CSide = false) then
-             RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
-           else
-             RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
-           // and WallX too
-           if side then
-             RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
-           else
-             RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
-           RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
-           end;
-        end
-        else
-          hit := true;
+            RenderStack[StackLoad].CMapPos.X := MapPos.X;
+            RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
+            RenderStack[StackLoad].CSide := side;
+            // calculating perpWallDist
+            if (RenderStack[StackLoad].CSide = false) then
+              RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
+            else
+              RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+            // and WallX too
+            if side then
+              RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+            else
+              RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+            RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+            end;
+          end
+          else
+            hit := true;
+        end;
+      end
+      else
+      begin
+        hit := true;
       end;
     end;
 
@@ -153,6 +168,7 @@ implementation
     else
       WallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
     WallX := WallX - floor(WallX);
+
   end;
 
   procedure TRaycaster.DrawStripe(AScreenX: integer);
@@ -160,34 +176,30 @@ implementation
     WallColor: TColorRGB;
     LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
   begin
+    //at first we draw the farthest objects...
     LineHeight := floor(ScreenHeight/perpWallDist);
     DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
     DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
-
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
-    TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
-    if (TextureExists(@Textures[TexIndex])) then
+    if ((MapPos.x >= 0) and (MapPos.x < Length(GameMap.Map)) and (MapPos.y >= 0) and (MapPos.y < Length(GameMap.Map[MapPos.x]))) then
     begin
-      if (side) then
-         SetTextureColorMod(@Textures[TexIndex], 127, 127, 127);
-      DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex]);
-      SetTextureColorMod(@Textures[TexIndex], 255, 255, 255)
-    end
-    else
-      verLine(AScreenX,DrawStart,DrawEnd,WallColor);
-
+      TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
+      if (TextureExists(@Textures[TexIndex])) then
+      begin
+        DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex],side)
+      end
+      else
+        verLine(AScreenX,DrawStart,DrawEnd,WallColor);
+    end;
+    //...and so on to nearest.
     for i:=StackLoad downto 1 do
     begin
       LineHeight := floor(ScreenHeight/RenderStack[i].CPerpWallDist);
       DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
       DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
       TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
-
-      if (RenderStack[StackLoad].CSide) then
-         SetTextureColorMod(@Textures[TexIndex], 127, 127, 127);
-      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex]);
-      SetTextureColorMod(@Textures[TexIndex], 255, 255, 255);
+      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide);
     end;
   end;
 
@@ -211,7 +223,9 @@ implementation
 
   procedure TRaycaster.DrawHud;
   begin
-    //TODO HUD
+    writeText('Plane= '+FloatToStr(VPlane.X)+';'+FloatToStr(VPlane.Y),0,ScreenHeight-3*CHAR_SIZE-1);
+    writeText('Player X='+FloatToStr(Game.VPlayer.X)+'; Y='+FloatToStr(Game.VPlayer.Y),0,ScreenHeight-2*CHAR_SIZE-1);
+    writeText('Direction: ('+FloatToStr(Game.VDirection.X)+';'+FloatToStr(Game.VDirection.Y)+')',0,ScreenHeight-CHAR_SIZE-1);
   end;
 
   procedure TRaycaster.DrawFPS;
@@ -235,16 +249,20 @@ implementation
     readKeys;
     if keyDown(KEY_UP) then
     begin
-      if (GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) then
+      if ((GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) then
         Game.VPlayer.X += Game.VDirection.X*MoveSpeed;
-      if (GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) then
+      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) or
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)]].Solid)) then
         Game.VPlayer.Y += Game.VDirection.Y*MoveSpeed;
     end;
     if keyDown(KEY_DOWN) then
     begin
-      if (GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) then
+      if ((GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) then
         Game.VPlayer.X -= Game.VDirection.X*MoveSpeed;
-      if (GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) then
+      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) or
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)]].Solid)) then
         Game.VPlayer.Y -= Game.VDirection.Y*MoveSpeed;
     end;
     if keyDown(KEY_RIGHT) then
@@ -270,7 +288,10 @@ implementation
 initialization
   Raycaster.ScreenWidth := 1024;
   Raycaster.ScreenHeight:= 768;
-  Raycaster.VPlane := FloatPoint(0.0,0.66);
+  //TODO FIX HARDCODED RAYCASTING PLANE (well, fixed)
+  //Raycaster.VPlane := FloatPoint(0.0,0.66);
+  Raycaster.FOV := 66;
+  Raycaster.VPlane := FloatPoint(Game.VDirection.Y*tan(degtorad(Raycaster.FOV/2)),-Game.VDirection.X*tan(degtorad(Raycaster.FOV/2)));
   Raycaster.Time := 0;
 
 end.

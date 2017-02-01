@@ -1,54 +1,54 @@
 object ConfiguratorForm: TConfiguratorForm
   Left = 892
-  Height = 240
+  Height = 216
   Top = 216
   Width = 332
   Caption = 'Engine Configurator'
-  ClientHeight = 240
+  ClientHeight = 216
   ClientWidth = 332
   OnActivate = FormActivate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.2.0'
   object WindowSizeLabel: TLabel
     Left = 10
     Height = 15
-    Top = 10
+    Top = 8
     Width = 67
     Caption = 'Window Size'
     ParentColor = False
   end
   object WindowWidthEdit: TEdit
-    Left = 88
+    Left = 83
     Height = 23
-    Top = 10
-    Width = 120
+    Top = 8
+    Width = 91
     NumbersOnly = True
     OnChange = WindowWidthEditChange
     TabOrder = 0
     Text = 'Window Width'
   end
   object WindowHeightEdit: TEdit
-    Left = 216
+    Left = 176
     Height = 23
-    Top = 10
-    Width = 112
+    Top = 8
+    Width = 104
     NumbersOnly = True
     OnChange = WindowHeightEditChange
     TabOrder = 1
     Text = 'Window Height'
   end
   object FullscreenCheckBox: TCheckBox
-    Left = 10
+    Left = 8
     Height = 19
-    Top = 32
+    Top = 36
     Width = 73
     Caption = 'Fullscreen'
     OnChange = FullscreenCheckBoxChange
     TabOrder = 2
   end
   object FOVEdit: TEdit
-    Left = 216
+    Left = 184
     Height = 23
-    Top = 40
+    Top = 36
     Width = 80
     NumbersOnly = True
     OnChange = FOVEditChange
@@ -73,9 +73,9 @@ object ConfiguratorForm: TConfiguratorForm
     ParentColor = False
   end
   object FOVLabel: TLabel
-    Left = 186
+    Left = 152
     Height = 15
-    Top = 40
+    Top = 36
     Width = 22
     Caption = 'FOV'
     ParentColor = False
@@ -98,9 +98,9 @@ object ConfiguratorForm: TConfiguratorForm
     ParentColor = False
   end
   object CloseButton: TButton
-    Left = 120
+    Left = 128
     Height = 25
-    Top = 176
+    Top = 184
     Width = 75
     Caption = 'Close'
     OnClick = CloseButtonClick
@@ -122,5 +122,25 @@ object ConfiguratorForm: TConfiguratorForm
     OnChange = SoundPathEditChange
     TabOrder = 7
     Text = 'SoundPathEdit'
+  end
+  object SoundCheckBox: TCheckBox
+    Left = 10
+    Height = 19
+    Top = 157
+    Width = 54
+    Caption = 'Sound'
+    Checked = True
+    OnChange = SoundCheckBoxChange
+    State = cbChecked
+    TabOrder = 8
+  end
+  object VSyncCheckBox: TCheckBox
+    Left = 88
+    Height = 19
+    Top = 36
+    Width = 52
+    Caption = 'VSync'
+    OnChange = VSyncCheckBoxChange
+    TabOrder = 9
   end
 end
