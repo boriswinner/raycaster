@@ -23,6 +23,12 @@ var
   TexturePath: string;
 implementation
 
+//LoadTexture(RenderTarget, FileName, Transparent, Solid);
+    //RenderTarget - use 'renderer' variable;
+    //FileName - I think you got it;
+    //Transparent - shows if texture supports transparency or not;
+    //Solid - shows ability to walk through walls with this texture.
+
 function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
 var
   bmp : PSDL_Surface;

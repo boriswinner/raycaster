@@ -48,6 +48,9 @@ implementation
 
   procedure InitTextures;
   begin
+    //TODO Load textures from special list
+    //loading manually for now
+
     Textures[1] := LoadTexture(renderer, 'greystone.bmp', false, true);
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
@@ -59,20 +62,25 @@ implementation
     Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
   end;
 
+  //Doing ray casting calculations there.
   procedure TRaycaster.CalculateStripe(AScreenX: integer);
   var
     CameraX: double;
-    RayPos,RayDir,DeltaDist,SideDist: TFloatPoint;
+    RayPos, RayDir, DeltaDist, SideDist: TFloatPoint;
     Step: TPoint;
     hit: boolean;
   begin
-    StackLoad := 0;
-    CameraX := 2.0*double(AScreenX)/double(ScreenWidth) - 1.0;
-    RayPos := Game.VPlayer;
-    RayDir.x := Game.VDirection.x + VPlane.x * CameraX;
-    RayDir.y := Game.VDirection.y + VPlane.y * CameraX;
-    MapPos.x := floor(RayPos.x);
-    MapPos.y := floor(RayPos.y);
+    // Render stack elements count.
+    StackLoad   := 0;
+    // X coordinate in camera space
+    CameraX     := 2.0*double(AScreenX)/double(ScreenWidth) - 1.0;
+    // Starting point of ray
+    RayPos      := Game.VPlayer;
+    RayDir.x    := Game.VDirection.x + VPlane.x * CameraX; // Direction of ray (X)
+    RayDir.y    := Game.VDirection.y + VPlane.y * CameraX; // Direction of ray (Y)
+    // Which box of the map we're in
+    MapPos.x    := floor(RayPos.x);
+    MapPos.y    := floor(RayPos.y);
     DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
 
 
@@ -288,8 +296,6 @@ implementation
 initialization
   Raycaster.ScreenWidth := 1024;
   Raycaster.ScreenHeight:= 768;
-  //TODO FIX HARDCODED RAYCASTING PLANE (well, fixed)
-  //Raycaster.VPlane := FloatPoint(0.0,0.66);
   Raycaster.FOV := 66;
   Raycaster.VPlane := FloatPoint(Game.VDirection.Y*tan(degtorad(Raycaster.FOV/2)),-Game.VDirection.X*tan(degtorad(Raycaster.FOV/2)));
   Raycaster.Time := 0;

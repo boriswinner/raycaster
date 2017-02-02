@@ -12,7 +12,7 @@ uses
 {$R *.res}
 
 begin
-  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, FullscreenMode, 'Raycaster (collision isn''t good)');
+  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, FullscreenMode, 'Raycaster');
   if (SoundOn) then
     PlayLevelMusic(LevelNumber);
   InitTextures;

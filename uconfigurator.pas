@@ -45,9 +45,16 @@ type
     { public declarations }
   end;
 
+//TODO type for all game settings (not level!)
+type TConfig = record
+  FullscreenMode, SoundOn, VSyncFlag: boolean;
+  ScreenWidth, ScreenHeight: integer;
+end;
+
 var
   ConfiguratorForm: TConfiguratorForm;
   FullscreenMode, SoundOn: boolean;
+
 
 implementation
 
@@ -105,7 +112,7 @@ begin
   FontPathEdit.Text := FontPath;
   TexturePathEdit.Text := TexturePath;
   SoundPathEdit.Text := SoundPath;
-  FOVEdit.Text:=IntToStr(Floor(Raycaster.VPlane.y*100));
+  FOVEdit.Text:=IntToStr(Raycaster.FOV);
 end;
 
 procedure TConfiguratorForm.CloseButtonClick(Sender: TObject);
