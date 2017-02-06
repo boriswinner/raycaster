@@ -5,7 +5,7 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor;
+  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor, umap;
 
 const STACK_LOAD_MAX = 64;
 type
