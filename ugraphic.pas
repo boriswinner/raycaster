@@ -7,7 +7,7 @@ interface
 //I'll use SDL2 because I can.
 
 uses
-  Classes, SysUtils, SDL2;
+  Classes, SysUtils, SDL2, utexture, Math;
 
 type
 
@@ -49,11 +49,20 @@ var
   scr           : PSDL_Texture;
   font          : PSDL_Surface;
   inkeys        : PUInt8;
+  pFormat,
+  bgFormat      : PSDL_PixelFormat;
+  pixels        : PUInt32;
+  pitch         : UInt32;
+  font_tex      : PSDL_Texture;
+
+  VSyncFlag     : Boolean;
+  FontPath      : Pchar;
 
 //TODO clean up that shit
 
-procedure finish; inline;
+procedure FinishGraphicModule; inline;
 function getTicks: UInt64; inline;
+procedure delay (ms: UInt32); inline;
 
 operator / (color: TColorRGB; a: integer) res : TColorRGB;
 
@@ -63,47 +72,19 @@ function  keyDown(key: TSDL_KeyCode): boolean; overload;
 function  keyDown(key: TSDL_ScanCode): boolean; overload;
 function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
+//procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
+procedure lock;
+procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
 procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
 procedure cls; inline; overload;
-procedure initFont;
+procedure initFont(APath: PChar);
 procedure writeText(text: string; x, y:integer);
-
-{
- TODO: PORT THIS!!!
-
-ColorRGB operator+(const ColorRGB& color, const ColorRGB& color2);
-ColorRGB operator-(const ColorRGB& color, const ColorRGB& color2);
-ColorRGB operator*(const ColorRGB& color, int a);
-ColorRGB operator*(int a, const ColorRGB& color);
-bool operator==(const ColorRGB& color, const ColorRGB& color2);
-bool operator!=(const ColorRGB& color, const ColorRGB& color2);
-
-//a color with 3 components: h, s and l
-struct ColorHSL
-[
-  int h;
-  int s;
-  int l;
-
-  ColorHSL(Uint8 h, Uint8 s, Uint8 l);
-  ColorHSL();
-];
-
-//a color with 3 components: h, s and v
-struct ColorHSV
-[
-  int h;
-  int s;
-  int v;
-
-  ColorHSV(Uint8 h, Uint8 s, Uint8 v);
-  ColorHSV();
-];
-}
 
 implementation
 //TColorRGB stuff first
@@ -120,8 +101,10 @@ begin
 end;
 
 //exit program
-procedure finish; inline;
+procedure FinishGraphicModule; inline;
 begin
+  SDL_SetRenderTarget(renderer, nil);
+  SDL_DestroyTexture(scr);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit;
@@ -129,16 +112,23 @@ begin
 end;
 
 //getTicks from SDL
-function getTicks: UInt64; inline;
+function GetTicks: UInt64; inline;
 begin
   Result := SDL_GetTicks;
 end;
 
+//delays program
+procedure delay (ms: UInt32); inline;
+begin
+  SDL_Delay(ms);
+end;
+
 //Screen() -- that's init of SDL
 procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
-const
-  RENDER_FLAGS = SDL_RENDERER_ACCELERATED; //or SDL_RENDERER_PRESENTVSYNC; //HW accel + VSync
+var
+  RENDER_FLAGS : UInt32;
 begin
+  RENDER_FLAGS := SDL_RENDERER_ACCELERATED or (SDL_RENDERER_PRESENTVSYNC and (UInt8(VSyncFlag) shl 2)); //HW accel + VSync
   screen_width := width;
   screen_height := height;
 
@@ -150,15 +140,15 @@ begin
   if window = nil then
   begin
     writeln('Window error: ', SDL_GetError);
-    finish;
+    FinishGraphicModule;
   end;
 
-  renderer := SDL_CreateRenderer(window,-1, RENDER_FLAGS);
+  renderer := SDL_CreateRenderer(window, -1, RENDER_FLAGS);
 
   if renderer = nil then
   begin
     writeln('Renderer error: ', SDL_GetError);
-    finish;
+    FinishGraphicModule;
   end;
 
   if fullscreen then
@@ -167,10 +157,11 @@ begin
     if SDL_RenderSetLogicalSize(renderer, screen_width, screen_height)<>0 then
       writeln('logical size error: ', SDL_GetError);
   end;
-
-  //scr := SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), 0, width, height);
-
-  initFont;
+  pFormat := SDL_AllocFormat(SDL_GetWindowPixelFormat(window));
+  bgFormat := SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+  scr := SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+  SDL_SetTextureBlendMode(scr, SDL_BLENDMODE_BLEND);
+  initFont(FontPath);
 end;
 
 //Reads keys to array.
@@ -195,7 +186,7 @@ end;
 function done(quit_if_esc, delay: boolean): boolean;
 begin
   //quit_if_esc does not work!
-  if delay then SDL_Delay(5);
+  if delay then SDL_Delay(3); //do NOT set it on 2 or less
   readKeys;
   while SDL_PollEvent(@event)<>0 do
   begin
@@ -209,19 +200,74 @@ begin
   Result := done(true, true);
 end;
 
+//modifies color palette of texture
+procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
+begin
+  SDL_SetTextureColorMod(Tex^.RawTexture, R, G, B);
+end;
+
 //vertical line
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+var dy1, dy2: integer;
 begin
+  dy1 := max(0, y1);
+  dy2 := min(screen_height - 1, y2);
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  SDL_RenderDrawLine(renderer, x, y1, x, y2);
+  SDL_RenderDrawLine(renderer, x, dy1, x, dy2);
+end;
+
+//draws a stripe from texture
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
+var
+  src, dst: TSDL_Rect;
+begin
+  src.x := SInt32(Trunc(TexCoordX * double(Tex^.Width)));
+  src.y := 0;
+  src.w := 1;
+  src.h := Tex^.Height;
+
+  dst.x := DrawX;
+  dst.y := y1;
+  dst.w := 1;
+  dst.h := y2-y1+1;
+  SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
+end;
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
+begin
+  if Side then
+    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127);
+  DrawTexStripe(DrawX,y1,y2,TexCoordX,Tex);
+  SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
+end;
+
+//lock screen overlay in order to be able to draw pixel-by-pixel
+procedure lock;
+var bgColor, i: UInt32;
+begin
+  SDL_LockTexture(scr, nil, @pixels, @pitch);
+  bgColor := SDL_MapRGBA(bgFormat, 255, 255, 255, 0); //transparent
+  for i:=0 to screen_width*screen_height-1 do
+    pixels[i] := bgColor;
+end;
+//unlock screen overlay to finally draw changes
+procedure unlock;
+begin
+  SDL_UnlockTexture(scr);
+  SDL_RenderCopy(renderer, scr, nil, nil);
 end;
 
 //set pixel
 procedure pSet(x, y: integer; color: TColorRGB);
+var
+  pColor, pixelpos: UInt32;
 begin
   if (x < 0) or (y < 0) or (x >= screen_width) or (y >= screen_height) then exit;
-  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
-  SDL_RenderDrawPoint(renderer, x, y);
+  //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  //SDL_RenderDrawPoint(renderer, x, y);
+  pColor := SDL_MapRGBA(bgFormat, color.r, color.g, color.b, 255);
+
+  pixelpos := screen_width*y+x;
+  pixels[pixelpos] := pColor;
 end;
 
 //draw rectangular
@@ -239,7 +285,7 @@ begin
   SDL_RenderPresent(renderer);
 end;
 
-//clear screen
+//clear screen.
 procedure cls(color: TColorRGB); overload;
 begin
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
@@ -247,14 +293,14 @@ begin
 end;
 procedure cls; inline; overload;
 begin
-  cls(RGB_Black); //yaaaaay shitty code
+  cls(RGB_Black);
 end;
 
 //init font to make it usable
-procedure initFont;
+procedure initFont(APath: PChar);
 begin
   // TODO LOAD FONTS FROM FILE
-  font := SDL_LoadBMP('./res/good_font.bmp');
+  font := SDL_LoadBMP(APath);
   if font = nil then
   begin
     writeln('Can''t get the font file. ');
@@ -262,6 +308,7 @@ begin
   end;
   SDL_ConvertSurfaceFormat(font, SDL_PIXELFORMAT_RGB24, 0);
   SDL_SetColorKey(font, 1, SDL_MapRGB(font^.format, 0, 0, 0)); //make transparent bg
+  font_tex := SDL_CreateTextureFromSurface(renderer,font); // we need this for RenderCopy
 end;
 
 // write text
@@ -269,15 +316,14 @@ procedure writeText(text: string; x, y:integer);
 var
   len, i, row_cnt: integer;
   char_code: byte;
-  font_tex: PSDL_Texture;
   selection, char_rect: TSDL_Rect;
 begin
   //TODO \n support
   len := CHAR_SIZE * Length(text);
   row_cnt := font^.w div CHAR_SIZE;
 
-  if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
-    exit; // if our text is too big then we don't work
+  //if ((x < 0) or ((x+len) > screen_width) or (y < 0) or ((y+CHAR_SIZE) > screen_height)) then
+  //  exit; // if our text is too big then we don't work
 
   selection.w := CHAR_SIZE;
   selection.h := CHAR_SIZE;
@@ -286,7 +332,6 @@ begin
   char_rect.h := CHAR_SIZE;
   char_rect.y := y;
 
-  font_tex := SDL_CreateTextureFromSurface(renderer,font); // we need this for RenderCopy
   for i:=1 to Length(text) do
   begin
     char_code := ord(text[i]); // getting char code...
@@ -295,10 +340,11 @@ begin
     char_rect.x := x + (i-1)*CHAR_SIZE; // move next char of string to the right
     SDL_RenderCopy(renderer,font_tex,@selection,@char_rect); // and then we copy our char from font
   end;
-  SDL_DestroyTexture(font_tex); // prevent memory leak
+  //SDL_DestroyTexture(font_tex); // prevent memory leak
 end;
 
 initialization
-
+FontPath := './res/fonts/good_font.bmp';
+VSyncFlag := false;
 end.
 

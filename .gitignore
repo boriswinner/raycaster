@@ -3,5 +3,5 @@
 *.res
 lib/
 *.lps
-*.dll
 backup/
+*.dbg
