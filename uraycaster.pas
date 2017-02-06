@@ -83,8 +83,8 @@ implementation
     MapPos.y    := floor(RayPos.y);
     DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
 
-
-    if (RayDir.Y = 0) then RayDir.Y := 0.000001; //shitty hotfix!
+    // preventing division on zero
+    if (RayDir.Y = 0) then RayDir.Y := 0.000001;
 
     DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
     hit := false;
@@ -164,6 +164,7 @@ implementation
       end;
     end;
 
+    // calculating perpWallDist
     if (side = false) then
       perpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
     else
@@ -185,11 +186,14 @@ implementation
     LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
   begin
     //at first we draw the farthest objects...
+
     LineHeight := floor(ScreenHeight/perpWallDist);
     DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
     DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
+
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
+
     if ((MapPos.x >= 0) and (MapPos.x < Length(GameMap.Map)) and (MapPos.y >= 0) and (MapPos.y < Length(GameMap.Map[MapPos.x]))) then
     begin
       TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
@@ -200,6 +204,7 @@ implementation
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
     end;
+
     //...and so on to nearest.
     for i:=StackLoad downto 1 do
     begin
