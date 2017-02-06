@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Math,Forms, Controls, Graphics, Dialogs,
-  StdCtrls, uraycaster, ugraphic, utexture, usound, ugame;
+  StdCtrls, uraycaster, ugraphic, utexture, uconfiguration, usound, ugame;
 
 type
 
@@ -46,14 +46,10 @@ type
   end;
 
 //TODO type for all game settings (not level!)
-type TConfig = record
-  FullscreenMode, SoundOn, VSyncFlag: boolean;
-  ScreenWidth, ScreenHeight: integer;
-end;
 
 var
   ConfiguratorForm: TConfiguratorForm;
-  FullscreenMode, SoundOn: boolean;
+  SoundOn: boolean;
 
 
 implementation
@@ -64,17 +60,17 @@ implementation
 
 procedure TConfiguratorForm.WindowWidthEditChange(Sender: TObject);
 begin
-  Raycaster.ScreenWidth := StrToIntDef((Sender as TEdit).Text,640);
+  Config.ScreenWidth := StrToIntDef((Sender as TEdit).Text,640);
 end;
 
 procedure TConfiguratorForm.WindowHeightEditChange(Sender: TObject);
 begin
-  Raycaster.ScreenHeight := StrToIntDef((Sender as TEdit).Text,480);
+  Config.ScreenHeight := StrToIntDef((Sender as TEdit).Text,480);
 end;
 
 procedure TConfiguratorForm.FullscreenCheckBoxChange(Sender: TObject);
 begin
-  FullscreenMode := (Sender as TCheckBox).Checked;
+  Config.Fullscreen := (Sender as TCheckBox).Checked;
 end;
 
 procedure TConfiguratorForm.SoundCheckBoxChange(Sender: TObject);
@@ -94,7 +90,7 @@ end;
 
 procedure TConfiguratorForm.VSyncCheckBoxChange(Sender: TObject);
 begin
-  VSyncFlag := (Sender as TCheckBox).Checked;
+  Config.VSync := (Sender as TCheckBox).Checked;
 end;
 
 procedure TConfiguratorForm.FOVEditChange(Sender: TObject);
@@ -107,12 +103,12 @@ end;
 
 procedure TConfiguratorForm.FormActivate(Sender: TObject);
 begin
-  WindowWidthEdit.Text:= IntToStr(Raycaster.ScreenWidth);
-  WindowHeightEdit.Text:= IntToStr(Raycaster.ScreenHeight);
+  WindowWidthEdit.Text:= IntToStr(Config.ScreenWidth);
+  WindowHeightEdit.Text:= IntToStr(Config.ScreenHeight);
   FontPathEdit.Text := FontPath;
   TexturePathEdit.Text := TexturePath;
   SoundPathEdit.Text := SoundPath;
-  FOVEdit.Text:=IntToStr(Raycaster.FOV);
+  FOVEdit.Text:=IntToStr(Config.FOV);
 end;
 
 procedure TConfiguratorForm.CloseButtonClick(Sender: TObject);

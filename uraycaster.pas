@@ -5,7 +5,8 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor, umap;
+  Classes, SysUtils, Math, GraphMath, uconfiguration, ugraphic, utexture, ugame,
+  udoor, umap;
 
 const STACK_LOAD_MAX = 64;
 type
@@ -26,7 +27,6 @@ type
     public
       FOV : Int16;
       VPlane: TFloatPoint;
-      ScreenWidth,ScreenHeight: integer;
 
       //VCameraX: double;
       procedure CalculateStripe(AScreenX: integer);
@@ -73,7 +73,7 @@ implementation
     // Render stack elements count.
     StackLoad   := 0;
     // X coordinate in camera space
-    CameraX     := 2.0*double(AScreenX)/double(ScreenWidth) - 1.0;
+    CameraX     := 2.0*double(AScreenX)/double(Config.ScreenWidth) - 1.0;
     // Starting point of ray
     RayPos      := Game.VPlayer;
     RayDir.x    := Game.VDirection.x + VPlane.x * CameraX; // Direction of ray (X)
@@ -185,9 +185,9 @@ implementation
     LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
   begin
     //at first we draw the farthest objects...
-    LineHeight := floor(ScreenHeight/perpWallDist);
-    DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
-    DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
+    LineHeight := floor(Config.ScreenHeight/perpWallDist);
+    DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
+    DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
     if ((MapPos.x >= 0) and (MapPos.x < Length(GameMap.Map)) and (MapPos.y >= 0) and (MapPos.y < Length(GameMap.Map[MapPos.x]))) then
@@ -203,9 +203,9 @@ implementation
     //...and so on to nearest.
     for i:=StackLoad downto 1 do
     begin
-      LineHeight := floor(ScreenHeight/RenderStack[i].CPerpWallDist);
-      DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
-      DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
+      LineHeight := floor(Config.ScreenHeight/RenderStack[i].CPerpWallDist);
+      DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
+      DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
       TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
       DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide);
     end;
@@ -215,9 +215,9 @@ implementation
   var
     ScreenX: integer;
   begin
-    drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
-    drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
-    for ScreenX := 0 to ScreenWidth do
+    drawRect(0, 0, Config.ScreenWidth, Config.ScreenHeight div 2, RGB_Gray); // ceiling
+    drawRect(0, Config.ScreenHeight div 2, Config.ScreenWidth, Config.ScreenHeight, RGB_Grey); //floor
+    for ScreenX := 0 to Config.ScreenWidth do
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
@@ -231,9 +231,9 @@ implementation
 
   procedure TRaycaster.DrawHud;
   begin
-    writeText('Plane= '+FloatToStr(VPlane.X)+';'+FloatToStr(VPlane.Y),0,ScreenHeight-3*CHAR_SIZE-1);
-    writeText('Player X='+FloatToStr(Game.VPlayer.X)+'; Y='+FloatToStr(Game.VPlayer.Y),0,ScreenHeight-2*CHAR_SIZE-1);
-    writeText('Direction: ('+FloatToStr(Game.VDirection.X)+';'+FloatToStr(Game.VDirection.Y)+')',0,ScreenHeight-CHAR_SIZE-1);
+    writeText('Plane= '+FloatToStr(VPlane.X)+';'+FloatToStr(VPlane.Y),0,Config.ScreenHeight-3*CHAR_SIZE-1);
+    writeText('Player X='+FloatToStr(Game.VPlayer.X)+'; Y='+FloatToStr(Game.VPlayer.Y),0,Config.ScreenHeight-2*CHAR_SIZE-1);
+    writeText('Direction: ('+FloatToStr(Game.VDirection.X)+';'+FloatToStr(Game.VDirection.Y)+')',0,Config.ScreenHeight-CHAR_SIZE-1);
   end;
 
   procedure TRaycaster.DrawFPS;
@@ -294,10 +294,9 @@ implementation
   end;
 
 initialization
-  Raycaster.ScreenWidth := 1024;
-  Raycaster.ScreenHeight:= 768;
   Raycaster.FOV := 66;
-  Raycaster.VPlane := FloatPoint(Game.VDirection.Y*tan(degtorad(Raycaster.FOV/2)),-Game.VDirection.X*tan(degtorad(Raycaster.FOV/2)));
+  Raycaster.VPlane.x := Game.VDirection.Y*tan(degtorad(Config.FOV/2));
+  Raycaster.VPlane.y := -Game.VDirection.X*tan(degtorad(Config.FOV/2));
   Raycaster.Time := 0;
 
 end.

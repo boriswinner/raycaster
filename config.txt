@@ -1,0 +1,8 @@
+SIGNATURE RAYCASTERCONFIG
+
+SECTION GRAPHICS
+ScreenWidth 800
+ScreenHeight 600
+FullScreen true
+VSync true
+FOV 66
