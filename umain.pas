@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Classes, Forms, Interfaces, uraycaster, ugame, ugraphic, usound,
-  uconfigurator;
+  uconfigurator, umap;
 
 {$R *.res}
 
