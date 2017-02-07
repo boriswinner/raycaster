@@ -5,9 +5,10 @@ unit uraycaster;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, ugraphic, utexture, ugame, udoor, umap;
+  Classes, SysUtils, Math, GraphMath, uconfiguration, ugraphic, utexture, ugame,
+  udoor, umap;
 
-const STACK_LOAD_MAX = 64;
+const STACK_LOAD_MAX = 256;
 type
   RenderInfo = record
     CPerpWallDist, CWallX: double;
@@ -26,7 +27,6 @@ type
     public
       FOV : Int16;
       VPlane: TFloatPoint;
-      ScreenWidth,ScreenHeight: integer;
 
       //VCameraX: double;
       procedure CalculateStripe(AScreenX: integer);
@@ -73,7 +73,7 @@ implementation
     // Render stack elements count.
     StackLoad   := 0;
     // X coordinate in camera space
-    CameraX     := 2.0*double(AScreenX)/double(ScreenWidth) - 1.0;
+    CameraX     := 2.0*double(AScreenX)/double(Config.ScreenWidth) - 1.0;
     // Starting point of ray
     RayPos      := Game.VPlayer;
     RayDir.x    := Game.VDirection.x + VPlane.x * CameraX; // Direction of ray (X)
@@ -83,30 +83,45 @@ implementation
     MapPos.y    := floor(RayPos.y);
     DeltaDist.x := sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
 
-    // preventing division on zero
+    //prevent division by zero!
     if (RayDir.Y = 0) then RayDir.Y := 0.000001;
 
     DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
     hit := false;
 
+    //if AScreenX = 60 then
+    //  writeln('RayDir ',RayDir.x,';',RayDir.y);
+
     if (RayDir.x < 0) then
     begin
       Step.X := -1;
       SideDist.X := (RayPos.X - MapPos.X)*DeltaDist.X;
+
+     // if AScreenX = 60 then
+     //   writeln('RayDir.X < 0; Step.X=-1; SideDist.X=',SideDist.X);
     end else
     begin
       Step.X := 1;
       SideDist.X := (MapPos.X + 1 - RayPos.X)*DeltaDist.X;
+
+      //if AScreenX = 60 then
+      //  writeln('RayDir.X >= 0; Step.X=1; SideDist.X=',SideDist.X);
     end;
 
     if (RayDir.Y < 0) then
     begin
       Step.y := -1;
       SideDist.Y := (RayPos.Y - MapPos.Y)*DeltaDist.Y;
+
+     // if AScreenX = 60 then
+      //  writeln('RayDir.Y < 0; Step.Y=-1; SideDist.Y=',SideDist.Y);
     end else
     begin
       Step.Y := 1;
       SideDist.Y := (MapPos.Y + 1 - RayPos.Y)*DeltaDist.Y;
+
+     // if AScreenX = 60 then
+      //  writeln('RayDir.Y > 0; Step.Y=1; SideDist.Y=',SideDist.Y);
     end;
 
     //perform DDA
@@ -117,6 +132,9 @@ implementation
         SideDist.X += DeltaDist.X;
         MapPos.X += Step.X;
         side := false;
+
+       // if AScreenX = 60 then
+       //   writeln('SideDist: X<Y; SideDist.x +=',DeltaDist.Y,';MapPos');
       end else
       begin
         SideDist.Y += DeltaDist.Y;
@@ -135,23 +153,44 @@ implementation
             //if it is, then we check on stack bounds
             if (StackLoad < STACK_LOAD_MAX) then
             begin
-            inc(StackLoad);
-            //doing calculations for stack elems
+              inc(StackLoad);
+              //doing calculations for stack elems
 
-            RenderStack[StackLoad].CMapPos.X := MapPos.X;
-            RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
-            RenderStack[StackLoad].CSide := side;
-            // calculating perpWallDist
-            if (RenderStack[StackLoad].CSide = false) then
-              RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
-            else
-              RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
-            // and WallX too
-            if side then
-              RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
-            else
-              RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
-            RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+              RenderStack[StackLoad].CMapPos.X := MapPos.X;
+              RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
+              RenderStack[StackLoad].CSide := side;
+              // calculating perpWallDist
+              if (RenderStack[StackLoad].CSide = false) then
+                RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
+              else
+                RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+              // and WallX too
+              if side then
+                RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+              else
+                RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+              RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+
+              // And now we must render the "invisible" side of our wall
+              inc(StackLoad);
+              RenderStack[StackLoad].CMapPos.X := MapPos.X; // they are the same
+              RenderStack[StackLoad].CMapPos.Y := MapPos.Y; // because we draw the same texture
+              // but here come the differences
+              if (SideDist.X < SideDist.Y) then
+              begin
+                RenderStack[StackLoad].CSide := false;
+
+                RenderStack[StackLoad].CPerpWallDist := ( (MapPos.X + Step.X) - RayPos.X + (1 - step.X) / 2) / RayDir.X;
+                RenderStack[StackLoad].CWallX := RayPos.Y + (( (MapPos.X + Step.X) - RayPos.X + (1 - Step.X) / 2) / RayDir.X) * RayDir.Y;
+              end else
+              begin
+                RenderStack[StackLoad].CSide := true;
+
+                RenderStack[StackLoad].CPerpWallDist := ( (MapPos.Y + Step.Y) - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+                RenderStack[StackLoad].CWallX := RayPos.X + (( (MapPos.Y + Step.Y) - RayPos.Y + (1 - Step.Y) / 2) / RayDir.Y) * RayDir.X;
+              end;
+
+              RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
             end;
           end
           else
@@ -164,7 +203,6 @@ implementation
       end;
     end;
 
-    // calculating perpWallDist
     if (side = false) then
       perpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
     else
@@ -186,14 +224,11 @@ implementation
     LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
   begin
     //at first we draw the farthest objects...
-
-    LineHeight := floor(ScreenHeight/perpWallDist);
-    DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
-    DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
-
+    LineHeight := floor(Config.ScreenHeight/perpWallDist);
+    DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
+    DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
     WallColor := RGB_Magenta; //default texture in case number doesn't exist
     if (side) then WallColor := WallColor / 2;
-
     if ((MapPos.x >= 0) and (MapPos.x < Length(GameMap.Map)) and (MapPos.y >= 0) and (MapPos.y < Length(GameMap.Map[MapPos.x]))) then
     begin
       TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
@@ -204,14 +239,14 @@ implementation
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
     end;
-
     //...and so on to nearest.
     for i:=StackLoad downto 1 do
     begin
-      LineHeight := floor(ScreenHeight/RenderStack[i].CPerpWallDist);
-      DrawStart := floor(-LineHeight / 2 + ScreenHeight / 2);
-      DrawEnd := floor(LineHeight / 2 + ScreenHeight / 2);
+      LineHeight := floor(Config.ScreenHeight/RenderStack[i].CPerpWallDist);
+      DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
+      DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
       TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
+
       DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide);
     end;
   end;
@@ -220,9 +255,9 @@ implementation
   var
     ScreenX: integer;
   begin
-    drawRect(0, 0, ScreenWidth, ScreenHeight div 2, RGB_Gray); // ceiling
-    drawRect(0, ScreenHeight div 2, ScreenWidth, ScreenHeight, RGB_Grey); //floor
-    for ScreenX := 0 to ScreenWidth do
+    drawRect(0, 0, Config.ScreenWidth, Config.ScreenHeight div 2, RGB_Gray); // ceiling
+    drawRect(0, Config.ScreenHeight div 2, Config.ScreenWidth, Config.ScreenHeight, RGB_Grey); //floor
+    for ScreenX := 0 to Config.ScreenWidth do
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
@@ -236,9 +271,9 @@ implementation
 
   procedure TRaycaster.DrawHud;
   begin
-    writeText('Plane= '+FloatToStr(VPlane.X)+';'+FloatToStr(VPlane.Y),0,ScreenHeight-3*CHAR_SIZE-1);
-    writeText('Player X='+FloatToStr(Game.VPlayer.X)+'; Y='+FloatToStr(Game.VPlayer.Y),0,ScreenHeight-2*CHAR_SIZE-1);
-    writeText('Direction: ('+FloatToStr(Game.VDirection.X)+';'+FloatToStr(Game.VDirection.Y)+')',0,ScreenHeight-CHAR_SIZE-1);
+    writeText('Plane= '+FloatToStr(VPlane.X)+';'+FloatToStr(VPlane.Y),0,Config.ScreenHeight-3*CHAR_SIZE-1);
+    writeText('Player X='+FloatToStr(Game.VPlayer.X)+'; Y='+FloatToStr(Game.VPlayer.Y),0,Config.ScreenHeight-2*CHAR_SIZE-1);
+    writeText('Direction: ('+FloatToStr(Game.VDirection.X)+';'+FloatToStr(Game.VDirection.Y)+')',0,Config.ScreenHeight-CHAR_SIZE-1);
   end;
 
   procedure TRaycaster.DrawFPS;
@@ -299,10 +334,9 @@ implementation
   end;
 
 initialization
-  Raycaster.ScreenWidth := 1024;
-  Raycaster.ScreenHeight:= 768;
   Raycaster.FOV := 66;
-  Raycaster.VPlane := FloatPoint(Game.VDirection.Y*tan(degtorad(Raycaster.FOV/2)),-Game.VDirection.X*tan(degtorad(Raycaster.FOV/2)));
+  Raycaster.VPlane.x := Game.VDirection.Y*tan(degtorad(Config.FOV/2));
+  Raycaster.VPlane.y := -Game.VDirection.X*tan(degtorad(Config.FOV/2));
   Raycaster.Time := 0;
 
 end.

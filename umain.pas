@@ -6,13 +6,13 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, Forms, Interfaces, uraycaster, ugame, ugraphic, usound,
-  uconfigurator, umap;
+  Classes, Forms, Interfaces, uconfiguration, uconfigurator, uraycaster, ugame,
+  ugraphic, usound, umap, udictionary;
 
 {$R *.res}
 
 begin
-  screen(Raycaster.ScreenWidth, Raycaster.ScreenHeight, FullscreenMode, 'Raycaster');
+  screen(Config.ScreenWidth, Config.ScreenHeight, Config.Fullscreen, 'Raycaster');
   if (SoundOn) then
     PlayLevelMusic(LevelNumber);
   InitTextures;
