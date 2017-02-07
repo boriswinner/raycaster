@@ -13,7 +13,7 @@ uses
 
 begin
   screen(Config.ScreenWidth, Config.ScreenHeight, Config.Fullscreen, 'Raycaster');
-  if (SoundOn) then
+  if (Config.SoundOn) then
     PlayLevelMusic(LevelNumber);
   InitTextures;
   while (not done) do

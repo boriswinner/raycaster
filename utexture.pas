@@ -5,7 +5,7 @@ unit utexture;
 interface
 
 uses
-  Classes, SysUtils, SDL2;
+  Classes, SysUtils, SDL2, uconfiguration;
 
 type TTexture = record
   RawTexture : PSDL_Texture;
@@ -20,8 +20,6 @@ function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transpare
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
-var
-  TexturePath: string;
 implementation
 
 //LoadTexture(RenderTarget, FileName, Transparent, Solid);
@@ -36,7 +34,7 @@ var
 begin
    Result.Width:=0;
    Result.Height:=0;
-   bmp := SDL_LoadBMP(PAnsiChar(TexturePath + FileName));
+   bmp := SDL_LoadBMP(PAnsiChar(Config.TexturePath + FileName));
    if bmp = nil then
      exit;
 
@@ -82,6 +80,5 @@ begin
 end;
 
 initialization
-  TexturePath := './res/textures/';
 end.
 
