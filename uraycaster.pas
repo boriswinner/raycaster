@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Math, GraphMath, uconfiguration, ugraphic, utexture, ugame,
   udoor, umap;
 
-const STACK_LOAD_MAX = 256;
+const STACK_LOAD_MAX = 1024; //well, the size of stack can be 2^31-1
 type
   RenderInfo = record
     CPerpWallDist, CWallX: double;
@@ -22,7 +22,7 @@ type
       MapPos: TPoint;
       side: boolean;
       Time,OldTime, FrameTime, WallX: double;
-      RenderStack: array[0..STACK_LOAD_MAX] of RenderInfo;
+      RenderStack: array[0..STACK_LOAD_MAX+1] of RenderInfo;
       StackLoad: UInt8;
     public
       FOV : Int16;
