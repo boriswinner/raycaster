@@ -57,6 +57,7 @@ Dictionary.AddToDict('FOV',@Config.FOV,0);
 Dictionary.AddToDict('TexturePath',@Config.TexturePath,1);
 Dictionary.AddToDict('SoundPath',@Config.SoundPath,1);
 Dictionary.AddToDict('FontPath',@Config.FontPath,1);
+Dictionary.AddToDict('SoundOn',@Config.SoundOn,2);
 
 Config.ReadFromFile('config.txt');
 

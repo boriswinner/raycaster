@@ -1,13 +1,13 @@
 object ConfiguratorForm: TConfiguratorForm
-  Left = 892
+  Left = 1060
   Height = 216
-  Top = 216
+  Top = 208
   Width = 332
   Caption = 'Engine Configurator'
   ClientHeight = 216
   ClientWidth = 332
   OnActivate = FormActivate
-  LCLVersion = '1.6.2.0'
+  LCLVersion = '1.6.0.4'
   object WindowSizeLabel: TLabel
     Left = 10
     Height = 15

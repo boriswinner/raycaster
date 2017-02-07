@@ -11,3 +11,6 @@ SECTION PATH
 SoundPath ./res/sounds/
 TexturePath ./res/textures/
 FontPath ./res/fonts/good_font.bmp
+
+SECTION SOUND
+SoundOn true

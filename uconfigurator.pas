@@ -49,8 +49,6 @@ type
 
 var
   ConfiguratorForm: TConfiguratorForm;
-  SoundOn: boolean;
-
 
 implementation
 
@@ -75,7 +73,7 @@ end;
 
 procedure TConfiguratorForm.SoundCheckBoxChange(Sender: TObject);
 begin
-  SoundOn := (Sender as TCheckBox).Checked;
+  Config.SoundOn := (Sender as TCheckBox).Checked;
 end;
 
 procedure TConfiguratorForm.SoundPathEditChange(Sender: TObject);
@@ -102,12 +100,15 @@ end;
 
 procedure TConfiguratorForm.FormActivate(Sender: TObject);
 begin
-  WindowWidthEdit.Text:= IntToStr(Config.ScreenWidth);
-  WindowHeightEdit.Text:= IntToStr(Config.ScreenHeight);
-  FontPathEdit.Text := Config.FontPath;
-  TexturePathEdit.Text := Config.TexturePath;
-  SoundPathEdit.Text := Config.SoundPath;
+  WindowWidthEdit.Text:=IntToStr(Config.ScreenWidth);
+  WindowHeightEdit.Text:=IntToStr(Config.ScreenHeight);
+  FontPathEdit.Text:=Config.FontPath;
+  TexturePathEdit.Text:=Config.TexturePath;
+  SoundPathEdit.Text:=Config.SoundPath;
   FOVEdit.Text:=IntToStr(Config.FOV);
+  FullscreenCheckBox.Checked:=Config.Fullscreen;
+  VSyncCheckBox.Checked:=Config.VSync;
+  SoundCheckBox.Checked:=Config.SoundOn;
 end;
 
 procedure TConfiguratorForm.CloseButtonClick(Sender: TObject);
@@ -121,7 +122,6 @@ begin
 end;
 
 initialization
-  SoundOn := true;
   RequireDerivedFormResource:=True;
   Application.Initialize;
   Application.CreateForm(TConfiguratorForm, ConfiguratorForm);
