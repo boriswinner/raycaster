@@ -10,12 +10,13 @@ uses
 type TTexture = record
   RawTexture : PSDL_Texture;
   Width, Height : Int32;
-  Transparent, Solid : boolean;
+  Transparent, Solid, Door : boolean;
   RenderTarget : PSDL_Renderer;
 end;
 type PTexture = ^TTexture;
 
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture; overload;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid, _Door: boolean) : TTexture; overload;
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
@@ -29,7 +30,7 @@ implementation
     //Transparent - shows if texture supports transparency or not;
     //Solid - shows ability to walk through walls with this texture.
 
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture; overload;
 var
   bmp : PSDL_Surface;
 begin
@@ -55,6 +56,13 @@ begin
    SDL_QueryTexture(Result.RawTexture, nil, nil, @Result.Width, @Result.Height);
    Result.RenderTarget := _RenderTarget;
    Result.Solid := _Solid;
+   Result.Door := false;
+end;
+
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid, _Door: boolean) : TTexture; overload;
+begin
+   Result := LoadTexture(_RenderTarget, FileName, _Transparent, _Solid);
+   Result.Door := _Door;
 end;
 
 procedure DestroyTexture(TextureToDestroy : PTexture);
