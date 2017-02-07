@@ -7,7 +7,7 @@ interface
 //I'll use SDL2 because I can.
 
 uses
-  Classes, SysUtils, SDL2, utexture, Math;
+  Classes, SysUtils, SDL2, utexture, uconfiguration, Math;
 
 type
 
@@ -56,7 +56,6 @@ var
   font_tex      : PSDL_Texture;
 
   VSyncFlag     : Boolean;
-  FontPath      : Pchar;
 
 //TODO clean up that shit
 
@@ -161,7 +160,7 @@ begin
   bgFormat := SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
   scr := SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
   SDL_SetTextureBlendMode(scr, SDL_BLENDMODE_BLEND);
-  initFont(FontPath);
+  initFont(PChar(Config.FontPath));
 end;
 
 //Reads keys to array.
@@ -344,7 +343,6 @@ begin
 end;
 
 initialization
-FontPath := './res/fonts/good_font.bmp';
 VSyncFlag := false;
 end.
 

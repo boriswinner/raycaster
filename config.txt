@@ -6,3 +6,8 @@ ScreenHeight 600
 FullScreen false
 VSync true
 FOV 66
+
+SECTION PATH
+SoundPath ./res/sounds/
+TexturePath ./res/textures/
+FontPath ./res/fonts/good_font.bmp

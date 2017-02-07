@@ -80,12 +80,12 @@ end;
 
 procedure TConfiguratorForm.SoundPathEditChange(Sender: TObject);
 begin
-  SoundPath := (Sender as TEdit).Text;
+  Config.SoundPath := (Sender as TEdit).Text;
 end;
 
 procedure TConfiguratorForm.TexturePathEditChange(Sender: TObject);
 begin
-  TexturePath := (Sender as TEdit).Text;
+  Config.TexturePath := (Sender as TEdit).Text;
 end;
 
 procedure TConfiguratorForm.VSyncCheckBoxChange(Sender: TObject);
@@ -104,9 +104,9 @@ procedure TConfiguratorForm.FormActivate(Sender: TObject);
 begin
   WindowWidthEdit.Text:= IntToStr(Config.ScreenWidth);
   WindowHeightEdit.Text:= IntToStr(Config.ScreenHeight);
-  FontPathEdit.Text := FontPath;
-  TexturePathEdit.Text := TexturePath;
-  SoundPathEdit.Text := SoundPath;
+  FontPathEdit.Text := Config.FontPath;
+  TexturePathEdit.Text := Config.TexturePath;
+  SoundPathEdit.Text := Config.SoundPath;
   FOVEdit.Text:=IntToStr(Config.FOV);
 end;
 
@@ -117,7 +117,7 @@ end;
 
 procedure TConfiguratorForm.FontPathEditChange(Sender: TObject);
 begin
-  FontPath := PChar((Sender as TEdit).Text);
+  Config.FontPath := ((Sender as TEdit).Text);
 end;
 
 initialization
