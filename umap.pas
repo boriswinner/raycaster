@@ -42,6 +42,7 @@ begin
     for j := low(s) to high(s) do
     begin
       Result[high(Result),j-1] := StrToIntDef(s[j],0);
+
       if Result[high(Result),j-1] = 5 then //Well, the new map format still in progress...
       begin
         setlength(Doors, length(Doors)+1);
@@ -53,6 +54,7 @@ begin
           y := j-1;
         end;
       end;
+
     end;
   end;
   close(fin);
