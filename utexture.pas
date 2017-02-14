@@ -13,6 +13,8 @@ type TTexture = record
   Transparent, Solid, Door : boolean;
   RenderTarget : PSDL_Renderer;
 end;
+//type TTransparency =
+
 type PTexture = ^TTexture;
 
 function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture; overload;

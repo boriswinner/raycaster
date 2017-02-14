@@ -8,7 +8,9 @@ uses
   Classes, SysUtils, Math, GraphMath, uconfiguration, ugraphic, utexture, ugame,
   udoor, umap;
 
-const STACK_LOAD_MAX = 1024; //well, the size of stack can be 2^31-1
+//you can increase or reduce this value. affects on performance.
+//but you know, i don't think 64 won't be enough.
+const STACK_LOAD_MAX = 64;
 type
   RenderInfo = record
     CPerpWallDist, CWallX: double;
@@ -30,6 +32,7 @@ type
 
       //VCameraX: double;
       procedure CalculateStripe(AScreenX: integer);
+     // procedure DrawFloorAndCeil(AScreenX: integer);
       procedure DrawStripe(AScreenX: integer);
       procedure DrawFrame;
       procedure DrawHud;
@@ -41,8 +44,11 @@ type
 var
   Raycaster : TRaycaster;
   Textures  : array[1..10] of TTexture; //TODO dynamic loading
-  //Doors     : array of TDoor;
+  DoorToOpen: TPoint;
+  DoorOpened: boolean;
+
 procedure InitTextures;
+procedure HandleDoors;
 
 implementation
 
@@ -89,39 +95,24 @@ implementation
     DeltaDist.y := sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
     hit := false;
 
-    //if AScreenX = 60 then
-    //  writeln('RayDir ',RayDir.x,';',RayDir.y);
-
     if (RayDir.x < 0) then
     begin
       Step.X := -1;
       SideDist.X := (RayPos.X - MapPos.X)*DeltaDist.X;
-
-     // if AScreenX = 60 then
-     //   writeln('RayDir.X < 0; Step.X=-1; SideDist.X=',SideDist.X);
     end else
     begin
       Step.X := 1;
       SideDist.X := (MapPos.X + 1 - RayPos.X)*DeltaDist.X;
-
-      //if AScreenX = 60 then
-      //  writeln('RayDir.X >= 0; Step.X=1; SideDist.X=',SideDist.X);
     end;
 
     if (RayDir.Y < 0) then
     begin
       Step.y := -1;
       SideDist.Y := (RayPos.Y - MapPos.Y)*DeltaDist.Y;
-
-     // if AScreenX = 60 then
-      //  writeln('RayDir.Y < 0; Step.Y=-1; SideDist.Y=',SideDist.Y);
     end else
     begin
       Step.Y := 1;
       SideDist.Y := (MapPos.Y + 1 - RayPos.Y)*DeltaDist.Y;
-
-     // if AScreenX = 60 then
-      //  writeln('RayDir.Y > 0; Step.Y=1; SideDist.Y=',SideDist.Y);
     end;
 
     //perform DDA
@@ -132,9 +123,6 @@ implementation
         SideDist.X += DeltaDist.X;
         MapPos.X += Step.X;
         side := false;
-
-       // if AScreenX = 60 then
-       //   writeln('SideDist: X<Y; SideDist.x +=',DeltaDist.Y,';MapPos');
       end else
       begin
         SideDist.Y += DeltaDist.Y;
@@ -154,43 +142,45 @@ implementation
             if (StackLoad < STACK_LOAD_MAX) then
             begin
               inc(StackLoad);
-              //doing calculations for stack elems
 
+              //doing calculations for stack elems
               RenderStack[StackLoad].CMapPos.X := MapPos.X;
               RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
               RenderStack[StackLoad].CSide := side;
+
               // calculating perpWallDist
               if (RenderStack[StackLoad].CSide = false) then
                 RenderStack[StackLoad].CPerpWallDist := (MapPos.X - RayPos.X + (1 - step.X) / 2) / RayDir.X
               else
                 RenderStack[StackLoad].CPerpWallDist := (MapPos.Y - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
+
               // and WallX too
-              if side then
+              if RenderStack[StackLoad].CSide then
                 RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
               else
                 RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+
               RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
 
               // And now we must render the "invisible" side of our wall
               inc(StackLoad);
               RenderStack[StackLoad].CMapPos.X := MapPos.X; // they are the same
               RenderStack[StackLoad].CMapPos.Y := MapPos.Y; // because we draw the same texture
+
               // but here come the differences
               if (SideDist.X < SideDist.Y) then
               begin
                 RenderStack[StackLoad].CSide := false;
-
                 RenderStack[StackLoad].CPerpWallDist := ( (MapPos.X + Step.X) - RayPos.X + (1 - step.X) / 2) / RayDir.X;
                 RenderStack[StackLoad].CWallX := RayPos.Y + (( (MapPos.X + Step.X) - RayPos.X + (1 - Step.X) / 2) / RayDir.X) * RayDir.Y;
               end else
               begin
                 RenderStack[StackLoad].CSide := true;
-
                 RenderStack[StackLoad].CPerpWallDist := ( (MapPos.Y + Step.Y) - RayPos.Y + (1 - step.Y) / 2) / RayDir.Y;
                 RenderStack[StackLoad].CWallX := RayPos.X + (( (MapPos.Y + Step.Y) - RayPos.Y + (1 - Step.Y) / 2) / RayDir.Y) * RayDir.X;
               end;
-
               RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+
             end;
           end
           else
@@ -221,7 +211,8 @@ implementation
   procedure TRaycaster.DrawStripe(AScreenX: integer);
   var
     WallColor: TColorRGB;
-    LineHeight,DrawStart,drawEnd, TexIndex, i: integer;
+    LineHeight,DrawStart,drawEnd, TexIndex, i, DrawEndPrev, DrawStartPrev: integer;
+    CurrDoor : PDoor;
   begin
     //at first we draw the farthest objects...
     LineHeight := floor(Config.ScreenHeight/perpWallDist);
@@ -232,6 +223,7 @@ implementation
     if ((MapPos.x >= 0) and (MapPos.x < Length(GameMap.Map)) and (MapPos.y >= 0) and (MapPos.y < Length(GameMap.Map[MapPos.x]))) then
     begin
       TexIndex := GameMap.Map[MapPos.X][MapPos.Y];
+
       if (TextureExists(@Textures[TexIndex])) then
       begin
         DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex],side)
@@ -239,6 +231,12 @@ implementation
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
     end;
+
+    if FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil then
+    begin
+      DoorToOpen := RenderStack[StackLoad].CMapPos;
+    end;
+
     //...and so on to nearest.
     for i:=StackLoad downto 1 do
     begin
@@ -247,7 +245,35 @@ implementation
       DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
       TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
 
+      //just test code for door rendering
+      CurrDoor := FindDoor(RenderStack[i].CMapPos.X, RenderStack[i].CMapPos.Y);
+      if CurrDoor <> nil then
+      begin
+        DrawEnd := DrawEnd - floor((DrawEnd - DrawStart)*(CurrDoor^.OpenValue));
+      end;
+
       DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide);
+
+      //because we don't have floors and ceils for now
+      //and yeah, this is way too shitty
+      if (i+1) <= StackLoad then
+      begin
+        if (RenderStack[i].CMapPos.X = RenderStack[i+1].CMapPos.X) and (RenderStack[i].CMapPos.Y = RenderStack[i+1].CMapPos.Y) then
+        begin
+          DrawEndPrev := floor(floor(Config.ScreenHeight/RenderStack[i+1].CPerpWallDist) / 2 + Config.ScreenHeight / 2);
+          DrawStartPrev := floor(-(floor(Config.ScreenHeight/RenderStack[i+1].CPerpWallDist)) / 2 + Config.ScreenHeight / 2);
+
+          if (CurrDoor <> nil) then
+            DrawEndPrev := DrawEndPrev - floor((DrawEndPrev - DrawStartPrev)*(CurrDoor^.OpenValue));
+
+          if (DrawEnd < DrawEndPrev)
+          and (RenderStack[i].CMapPos.x = RenderStack[i+1].CMapPos.x)
+          and (RenderStack[i].CMapPos.y = RenderStack[i+1].CMapPos.y)
+          then
+            verLine(AScreenX,DrawEnd,DrawEndPrev,RGB_Darkgreen);
+        end;
+      end;
+
     end;
   end;
 
@@ -267,6 +293,7 @@ implementation
     redraw;
     cls;
     HandleInput;
+    HandleDoors;
   end;
 
   procedure TRaycaster.DrawHud;
@@ -286,6 +313,25 @@ implementation
     writeText(FloatToStr(floor(1/FrameTime*100)/100)+' FPS',0,CHAR_SIZE+1);
   end;
 
+  procedure HandleDoors;
+  var i: integer;
+    CurrDoor: PDoor;
+  begin
+    if (DoorOpened) then
+    begin
+      CurrDoor := FindDoor(DoorToOpen.x, DoorToOpen.y);
+      CurrDoor^.Open;
+    end;
+    DoorOpened := false;
+    DoorToOpen.x := -1; //does not exist ofc
+    DoorToOpen.y := -1; //does not exist ofc
+
+    for i := low(Doors) to high(Doors) do
+    begin
+      Doors[i].DoorTick;
+    end;
+  end;
+
   procedure TRaycaster.HandleInput;
   var
     MoveSpeed,RotSpeed: double;
@@ -295,6 +341,13 @@ implementation
     RotSpeed := FrameTime*3;
 
     readKeys;
+    if keyDown(KEY_SPACE) then
+    begin
+      if (DoorToOpen.x > -1) and (DoorToOpen.y > -1) then
+      begin
+        DoorOpened := true;
+      end;
+    end;
     if keyDown(KEY_UP) then
     begin
       if ((GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
@@ -338,5 +391,7 @@ initialization
   Raycaster.VPlane.x := Game.VDirection.Y*tan(degtorad(Config.FOV/2));
   Raycaster.VPlane.y := -Game.VDirection.X*tan(degtorad(Config.FOV/2));
   Raycaster.Time := 0;
+
+  DoorOpened := false;
 
 end.

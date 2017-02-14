@@ -5,7 +5,7 @@ unit umap;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, udoor;
 
 type
   IntGrid = array of array of integer;
@@ -20,6 +20,9 @@ end;
 
 var
   GameMap: TMap;
+  Doors  : array of TDoor;
+
+function FindDoor(x,y:UInt32) : PDoor;
 
 implementation
 
@@ -37,9 +40,36 @@ begin
     readln(fin,s);
     setlength(Result[high(Result)],length(s));
     for j := low(s) to high(s) do
+    begin
       Result[high(Result),j-1] := StrToIntDef(s[j],0);
+      if Result[high(Result),j-1] = 5 then //Well, the new map format still in progress...
+      begin
+        setlength(Doors, length(Doors)+1);
+        with Doors[high(Doors)] do
+        begin
+          Opened := false;
+          OpenValue := 0.0;
+          x := high(Result);
+          y := j-1;
+        end;
+      end;
+    end;
   end;
   close(fin);
+end;
+
+function FindDoor(x,y:UInt32) : PDoor;
+var i: UInt32;
+begin
+  Result := nil;
+  for i := Low(Doors) to High(Doors) do
+  begin
+    if (Doors[i].x = x) and (Doors[i].y = y) then
+    begin
+      Result := @Doors[i];
+      Break;
+    end;
+  end;
 end;
 
 initialization
