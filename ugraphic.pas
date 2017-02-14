@@ -22,6 +22,7 @@ const
   KEY_DOWN = SDLK_DOWN;
   KEY_LEFT = SDLK_LEFT;
   KEY_RIGHT = SDLK_RIGHT;
+  KEY_SPACE = SDLK_SPACE;
 
   RGB_Black     : TColorRGB = (r: 0; g: 0; b: 0);
   RGB_Red       : TColorRGB = (r: 255; g: 0; b: 0);
@@ -343,6 +344,6 @@ begin
 end;
 
 initialization
-VSyncFlag := false;
+VSyncFlag := true;
 end.
 
