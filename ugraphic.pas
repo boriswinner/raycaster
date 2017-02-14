@@ -56,8 +56,6 @@ var
   pitch         : UInt32;
   font_tex      : PSDL_Texture;
 
-  VSyncFlag     : Boolean;
-
 //TODO clean up that shit
 
 procedure FinishGraphicModule; inline;
@@ -128,7 +126,7 @@ procedure screen(width, height:integer; fullscreen:boolean; window_name:string);
 var
   RENDER_FLAGS : UInt32;
 begin
-  RENDER_FLAGS := SDL_RENDERER_ACCELERATED or (SDL_RENDERER_PRESENTVSYNC and (UInt8(VSyncFlag) shl 2)); //HW accel + VSync
+  RENDER_FLAGS := SDL_RENDERER_ACCELERATED or (SDL_RENDERER_PRESENTVSYNC and (UInt8(Config.VSync) shl 2)); //HW accel + VSync
   screen_width := width;
   screen_height := height;
 
@@ -233,10 +231,33 @@ begin
   SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
 end;
 procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
+{var TexToDraw: PSDL_Texture;
 begin
+  if Side and (Tex^.RawTexture = Tex^.RawTextureSide) then
+    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127)
+  DrawTexStripe(DrawX,y1,y2,TexCoordX,Tex);
+  SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
+  }
+var
+  src, dst: TSDL_Rect;
+begin
+  src.x := SInt32(Trunc(TexCoordX * double(Tex^.Width)));
+  src.y := 0;
+  src.w := 1;
+  src.h := Tex^.Height;
+
+  dst.x := DrawX;
+  dst.y := y1;
+  dst.w := 1;
+  dst.h := y2-y1+1;
+
   if Side then
     SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127);
-  DrawTexStripe(DrawX,y1,y2,TexCoordX,Tex);
+
+  if Side and (Tex^.RawTexture <> Tex^.RawTextureSide) then
+    SDL_RenderCopy(renderer, Tex^.RawTextureSide, @src, @dst)
+  else
+    SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
   SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
 end;
 
@@ -344,6 +365,5 @@ begin
 end;
 
 initialization
-VSyncFlag := true;
 end.
 

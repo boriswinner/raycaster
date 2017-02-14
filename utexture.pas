@@ -8,9 +8,9 @@ uses
   Classes, SysUtils, SDL2, uconfiguration;
 
 type TTexture = record
-  RawTexture : PSDL_Texture;
+  RawTexture, RawTextureSide : PSDL_Texture;
   Width, Height : Int32;
-  Transparent, Solid, Door : boolean;
+  Transparent, Solid : boolean;
   RenderTarget : PSDL_Renderer;
 end;
 //type TTransparency =
@@ -18,7 +18,7 @@ end;
 type PTexture = ^TTexture;
 
 function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid: boolean) : TTexture; overload;
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid, _Door: boolean) : TTexture; overload;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName, FileNameSide: string; _Transparent, _Solid: boolean) : TTexture; overload;
 procedure DestroyTexture(TextureToDestroy : PTexture);
 function TextureExists(Target : PTexture) : boolean; inline;
 
@@ -48,6 +48,7 @@ begin
    Result.Transparent := _Transparent;
 
    Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
+   Result.RawTextureSide := Result.RawTexture;
 
    if Result.RawTexture = nil then
      exit;
@@ -56,13 +57,44 @@ begin
    SDL_QueryTexture(Result.RawTexture, nil, nil, @Result.Width, @Result.Height);
    Result.RenderTarget := _RenderTarget;
    Result.Solid := _Solid;
-   Result.Door := false;
 end;
 
-function LoadTexture(_RenderTarget : PSDL_Renderer; FileName: string; _Transparent, _Solid, _Door: boolean) : TTexture; overload;
+function LoadTexture(_RenderTarget : PSDL_Renderer; FileName, FileNameSide: string; _Transparent, _Solid: boolean) : TTexture; overload;
+var
+  bmp : PSDL_Surface;
 begin
-   Result := LoadTexture(_RenderTarget, FileName, _Transparent, _Solid);
-   Result.Door := _Door;
+   Result.Width:=0;
+   Result.Height:=0;
+   bmp := SDL_LoadBMP(PAnsiChar(Config.TexturePath + FileName));
+   if bmp = nil then
+     exit;
+
+   if _Transparent then
+   begin
+     SDL_SetColorKey(bmp, 1, SDL_MapRGB(bmp^.format, 255, 0, 255)); //magenta is transparent
+   end;
+
+   Result.Transparent := _Transparent;
+
+   Result.RawTexture := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
+
+   //load side texture
+   bmp := SDL_LoadBMP(PAnsiChar(Config.TexturePath + FileNameSide));
+   if bmp = nil then
+     exit;
+   if _Transparent then
+   begin
+     SDL_SetColorKey(bmp, 1, SDL_MapRGB(bmp^.format, 255, 0, 255)); //magenta is transparent
+   end;
+   Result.RawTextureSide := SDL_CreateTextureFromSurface(_RenderTarget, bmp);
+
+   if (Result.RawTexture = nil) or (Result.RawTextureSide = nil) then
+     exit;
+   SDL_FreeSurface(bmp);
+
+   SDL_QueryTexture(Result.RawTexture, nil, nil, @Result.Width, @Result.Height);
+   Result.RenderTarget := _RenderTarget;
+   Result.Solid := _Solid;
 end;
 
 procedure DestroyTexture(TextureToDestroy : PTexture);

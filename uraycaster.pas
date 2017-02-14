@@ -61,11 +61,11 @@ implementation
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
-    Textures[5] := LoadTexture(renderer, 'door.bmp', true, false);
+    Textures[5] := LoadTexture(renderer, 'door.bmp', 'door2_side.bmp', true, false);
     Textures[6] := LoadTexture(renderer, 'fence.bmp', true, false);
     Textures[7] := LoadTexture(renderer, 'test.bmp', true, false);
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
-    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', false, true);
+    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', 'reallybig.bmp', false, true);
   end;
 
   //Doing ray casting calculations there.
@@ -232,7 +232,7 @@ implementation
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
     end;
 
-    if FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil then
+    if (FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil) and (RenderStack[StackLoad].CPerpWallDist < 1.2) then
     begin
       DoorToOpen := RenderStack[StackLoad].CMapPos;
     end;
