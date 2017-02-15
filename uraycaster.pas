@@ -226,12 +226,14 @@ implementation
 
       if (TextureExists(@Textures[TexIndex])) then
       begin
-        DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex],side)
+        DrawTexStripe(AScreenX,DrawStart,DrawEnd,WallX,@Textures[TexIndex],side, perpWallDist)
       end
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
     end;
 
+    if (AScreenX = Config.ScreenWidth div 2) then
+      writeln('WallDist: ',perpWallDist:0:5);
     if (FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil) and (RenderStack[StackLoad].CPerpWallDist < 1.2) then
     begin
       DoorToOpen := RenderStack[StackLoad].CMapPos;
@@ -252,7 +254,7 @@ implementation
         DrawEnd := DrawEnd - floor((DrawEnd - DrawStart)*(CurrDoor^.OpenValue));
       end;
 
-      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide);
+      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide, RenderStack[i].CPerpWallDist);
 
       //because we don't have floors and ceils for now
       //and yeah, this is way too shitty
@@ -270,7 +272,7 @@ implementation
           and (RenderStack[i].CMapPos.x = RenderStack[i+1].CMapPos.x)
           and (RenderStack[i].CMapPos.y = RenderStack[i+1].CMapPos.y)
           then
-            verLine(AScreenX,DrawEnd,DrawEndPrev,RGB_Darkgreen);
+            verLine(AScreenX,DrawEnd,DrawEndPrev,RGB_Gray);
         end;
       end;
 
@@ -287,6 +289,9 @@ implementation
     begin
       CalculateStripe(ScreenX);
       DrawStripe(ScreenX);
+      //DRAW CROSSHAIR
+      verLine(Config.ScreenWidth div 2, (Config.ScreenHeight div 2)-5, (Config.ScreenHeight div 2)+5, RGB_White);
+      horLine(Config.ScreenHeight div 2, (Config.ScreenWidth div 2)-5, (Config.ScreenWidth div 2)+5, RGB_White);
     end;
     DrawHud;
     DrawFps;

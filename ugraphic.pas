@@ -72,8 +72,9 @@ function  done(quit_if_esc, delay: boolean): boolean; overload;
 function  done: boolean; inline; overload;
 //procedure SetTextureColorMod(Tex: PTexture; R, G, B: UInt8);
 procedure verLine(x, y1, y2: integer; color: TColorRGB);
+procedure horLine(y, x1, x2: integer; color: TColorRGB);
 procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
-procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean; wallDist: double); overload;
 procedure lock;
 procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
@@ -214,6 +215,16 @@ begin
   SDL_RenderDrawLine(renderer, x, dy1, x, dy2);
 end;
 
+//horizontal line
+procedure horLine(y, x1, x2: integer; color: TColorRGB);
+var dx1, dx2: integer;
+begin
+  dx1 := max(0, x1);
+  dx2 := min(screen_width - 1, x2);
+  SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+  SDL_RenderDrawLine(renderer, dx1, y, dx2, y);
+end;
+
 //draws a stripe from texture
 procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture); overload;
 var
@@ -230,16 +241,10 @@ begin
   dst.h := y2-y1+1;
   SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
 end;
-procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean); overload;
-{var TexToDraw: PSDL_Texture;
-begin
-  if Side and (Tex^.RawTexture = Tex^.RawTextureSide) then
-    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127)
-  DrawTexStripe(DrawX,y1,y2,TexCoordX,Tex);
-  SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
-  }
+procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture; Side: boolean; wallDist: double); overload;
 var
   src, dst: TSDL_Rect;
+  shading: byte;
 begin
   src.x := SInt32(Trunc(TexCoordX * double(Tex^.Width)));
   src.y := 0;
@@ -251,8 +256,14 @@ begin
   dst.w := 1;
   dst.h := y2-y1+1;
 
-  if Side then
-    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127);
+  {if Side then
+    SDL_SetTextureColorMod(Tex^.RawTexture, 127, 127, 127);}
+
+  //MAX_DIST = 75;
+  //if wallDist > 75 then
+  //  exit;
+  shading := max(round((1 - (wallDist/32))*255),0);
+  SDL_SetTextureColorMod(Tex^.RawTexture, shading, shading, shading);
 
   if Side and (Tex^.RawTexture <> Tex^.RawTextureSide) then
     SDL_RenderCopy(renderer, Tex^.RawTextureSide, @src, @dst)
