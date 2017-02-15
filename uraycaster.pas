@@ -214,6 +214,19 @@ implementation
     LineHeight,DrawStart,drawEnd, TexIndex, i, DrawEndPrev, DrawStartPrev: integer;
     CurrDoor : PDoor;
   begin
+    {$IFOPT D+}
+    // DEBUG INFO
+    // Dist from crosshair to wall
+    if (AScreenX = Config.ScreenWidth div 2) then
+      writeln('WallDist: ',perpWallDist:0:5);
+    {$ENDIF}
+
+    //to prevent opening doors from far distances
+    if (FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil) and (RenderStack[StackLoad].CPerpWallDist < 1.2) then
+    begin
+      DoorToOpen := RenderStack[StackLoad].CMapPos;
+    end;
+
     //at first we draw the farthest objects...
     LineHeight := floor(Config.ScreenHeight/perpWallDist);
     DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
@@ -230,13 +243,6 @@ implementation
       end
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
-    end;
-
-    if (AScreenX = Config.ScreenWidth div 2) then
-      writeln('WallDist: ',perpWallDist:0:5);
-    if (FindDoor(RenderStack[StackLoad].CMapPos.X, RenderStack[StackLoad].CMapPos.Y) <> nil) and (RenderStack[StackLoad].CPerpWallDist < 1.2) then
-    begin
-      DoorToOpen := RenderStack[StackLoad].CMapPos;
     end;
 
     //...and so on to nearest.
@@ -275,7 +281,6 @@ implementation
             verLine(AScreenX,DrawEnd,DrawEndPrev,RGB_Gray);
         end;
       end;
-
     end;
   end;
 

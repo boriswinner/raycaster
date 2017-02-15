@@ -262,14 +262,17 @@ begin
   //MAX_DIST = 75;
   //if wallDist > 75 then
   //  exit;
-  shading := max(round((1 - (wallDist/32))*255),0);
+  shading := max(round((1 - (wallDist/32))*255),3);
   SDL_SetTextureColorMod(Tex^.RawTexture, shading, shading, shading);
+  SDL_SetTextureColorMod(Tex^.RawTextureSide, shading, shading, shading);
 
-  if Side and (Tex^.RawTexture <> Tex^.RawTextureSide) then
+  if Side then
     SDL_RenderCopy(renderer, Tex^.RawTextureSide, @src, @dst)
   else
     SDL_RenderCopy(renderer, Tex^.RawTexture, @src, @dst);
+
   SDL_SetTextureColorMod(Tex^.RawTexture, 255, 255, 255);
+  SDL_SetTextureColorMod(Tex^.RawTextureSide, 255, 255, 255);
 end;
 
 //lock screen overlay in order to be able to draw pixel-by-pixel
