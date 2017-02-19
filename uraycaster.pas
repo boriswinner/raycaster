@@ -43,7 +43,7 @@ type
 
 var
   Raycaster : TRaycaster;
-  Textures  : array[1..10] of TTexture; //TODO dynamic loading
+  Textures  : array[1..10000000] of TTexture; //TODO dynamic loading
   DoorToOpen: TPoint;
   DoorOpened: boolean;
 
@@ -57,7 +57,15 @@ implementation
     //TODO Load textures from special list
     //loading manually for now
 
-    Textures[1] := LoadTexture(renderer, 'greystone.bmp', false, true);
+    //Test setting for first block
+    //MsgBox(GameMap.Blocks[0].NSTexture);
+
+    with (GameMap.Blocks[0]) do
+    begin
+      Textures[1] := LoadTexture(renderer, NSTexture, EWTexture, transparent, solid);
+    end;
+
+    // LoadTexture(renderer, 'greystone.bmp', false, true);
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);

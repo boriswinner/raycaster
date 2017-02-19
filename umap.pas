@@ -5,7 +5,7 @@ unit umap;
 interface
 
 uses
-  Classes, SysUtils, udoor, strutils, udictionary;
+  Classes, SysUtils, udoor, strutils, udictionary, utexture;
 
 type
   IntGrid = array of array of integer;

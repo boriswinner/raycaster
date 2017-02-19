@@ -59,6 +59,7 @@ var
 //TODO clean up that shit
 
 procedure FinishGraphicModule; inline;
+procedure MsgBox(msg: string); inline;
 function getTicks: UInt64; inline;
 procedure delay (ms: UInt32); inline;
 
@@ -109,6 +110,12 @@ begin
   SDL_DestroyWindow(window);
   SDL_Quit;
   halt(1);
+end;
+
+//Message box.
+procedure MsgBox(msg: string); inline;
+begin
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,PAnsiChar('Message'),PAnsiChar(msg), nil);
 end;
 
 //getTicks from SDL
