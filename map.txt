@@ -1,3 +1,15 @@
+#map file
+
+DEFINE 1 as
+NSTexture greystone.bmp
+EWTexture bigtexture.bmp
+FloorTexture bigtexture.bmp
+CeilTexture bigtexture.bmp
+solid true
+transparent false
+end
+
+MAP
 1212111211
 1000000001
 2011010901

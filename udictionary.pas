@@ -25,7 +25,8 @@ type
   end;
 
 var
-  Dictionary: TDictionary;
+  ConfigurationDictionary: TDictionary;
+  MapDictionary: TDictionary;
 implementation
 
 procedure TDictionary.AddToDict(AKey: string; AValue: pointer; AValtype: integer);
