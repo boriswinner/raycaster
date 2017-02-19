@@ -78,6 +78,7 @@ procedure DrawTexStripe(DrawX, y1, y2: integer; TexCoordX: double; Tex: PTexture
 procedure lock;
 procedure unlock;
 procedure pSet(x, y: integer; color: TColorRGB);
+procedure pSet(x, y: integer; texture: PTexture; tx,ty: UInt32);
 procedure drawRect(x1, y1, x2, y2: integer; color: TColorRGB);
 procedure redraw; inline;
 procedure cls(color: TColorRGB); overload;
@@ -303,6 +304,24 @@ begin
 
   pixelpos := screen_width*y+x;
   pixels[pixelpos] := pColor;
+end;
+
+//set pixel from texture
+procedure pSet(x, y: integer; texture: PTexture; tx,ty: UInt32);
+var
+  region,dst: TSDL_Rect;
+begin
+  region.x:=tx;
+  region.y:=ty;
+  region.w:=1;
+  region.h:=1;
+
+  dst.x:=x;
+  dst.y:=y;
+  dst.w:=1;
+  dst.h:=1;
+
+  SDL_RenderCopy(renderer,texture^.RawTexture,@region,@dst);
 end;
 
 //draw rectangular
