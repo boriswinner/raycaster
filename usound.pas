@@ -11,12 +11,21 @@ const
 var
   SoundSystem: TSoundSystem;
   SoundManager: TSoundManager;
-  SLevelSound: TSound;
+  SLevelSound, SSFXSound: TSound;
+
+procedure PlaySFX(SFXFileName: string);
 procedure PlayLevelMusic(LevelNumber: UInt32);
 procedure StopLevelMusic;
 procedure FinishSoundModule;
 
 implementation
+
+procedure PlaySFX(SFXFileName: string);
+begin
+  SSFXSound := SoundSystem.AddSound(Config.SoundPath + SFXFileName ,st2D, 2);
+  SSFXSound.Volume:=100;
+  SSFXSound.Play(false);
+end;
 
 procedure PlayLevelMusic(LevelNumber: UInt32);
 begin
@@ -34,10 +43,10 @@ procedure FinishSoundModule;
 begin
   StopLevelMusic;
   if SLevelSound <> nil then
-    SLevelSound.Destroy;
-  SoundManager.Destroy;
+    FreeAndNil(SLevelSound);
+  FreeAndNil(SoundManager);
   SoundSystem.Stop;
-  SoundSystem.Destroy;
+  FreeAndNil(SoundSystem);
 end;
 
 initialization
