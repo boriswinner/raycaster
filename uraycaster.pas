@@ -391,7 +391,10 @@ implementation
     OldTime := Time;
     Time := getTicks;
     FrameTime := (time - oldTime) / 1000;
-    writeText(FloatToStr(floor(1/FrameTime*100)/100)+' FPS',0,CHAR_SIZE+1);
+    if FrameTime = 0 then
+      writeText('Too many FPS',0,2*CHAR_SIZE+1)
+    else
+      writeText(FloatToStr(floor(1/FrameTime*100)/100)+' FPS',0,2*CHAR_SIZE+1);
   end;
 
   procedure HandleDoors;

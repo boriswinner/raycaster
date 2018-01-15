@@ -193,7 +193,7 @@ end;
 function done(quit_if_esc, delay: boolean): boolean;
 begin
   //quit_if_esc does not work!
-  if delay then SDL_Delay(3); //do NOT set it on 2 or less
+  if delay then SDL_Delay(3); //2 or less gives too many FPS
   readKeys;
   while SDL_PollEvent(@event)<>0 do
   begin
