@@ -164,17 +164,15 @@ implementation
 
             // calculating perpWallDist
             RenderStack[StackLoad].CPerpWallDist := sqrt(
-              power(Game.VPlayer.X - CurrSprite^.x - 0.45, 2) +
-              power(Game.VPlayer.Y - CurrSprite^.Y - 0.45, 2)
+              power(Game.VPlayer.X - CurrSprite^.x - 0.5, 2) +
+              power(Game.VPlayer.Y - CurrSprite^.Y - 0.5, 2)
             );
 
             // and WallX too
             if RenderStack[StackLoad].CSide then
-              RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+              RenderStack[StackLoad].CWallX := Frac(RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X)
             else
-              RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
-
-            RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+              RenderStack[StackLoad].CWallX := Frac(RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.X) / 2) / RayDir.X) * RayDir.Y);
           end
           else
             hit := true;
@@ -266,8 +264,8 @@ implementation
     {$IFOPT D+}
     // DEBUG INFO
     // Dist from crosshair to wall
-    if (AScreenX = Config.ScreenWidth div 2) then
-      writeln('WallDist: ',perpWallDist:0:5);
+    //if (AScreenX = Config.ScreenWidth div 2) then
+    //  writeln('WallDist: ',perpWallDist:0:5);
     {$ENDIF}
 
     //to prevent opening doors from far distances
@@ -420,7 +418,8 @@ implementation
     MoveSpeed,RotSpeed: double;
     OldVDirection,OldVPlane: TFloatPoint;
     MoveDoor: PDoor;
-    MoveThroughDoor: boolean;
+    MoveSprite: PSprite;
+    MoveThroughDoor, MoveThroughSprite: boolean;
   begin
     MoveSpeed := FrameTime*7;
     RotSpeed := FrameTime*3;
@@ -441,10 +440,23 @@ implementation
       else
         MoveThroughDoor := MoveDoor^.Opened;
 
-      if ((GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
+      MoveSprite := GameMap.FindSprite(Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed), Floor(Game.VPlayer.Y));
+      if MoveSprite = nil then
+        MoveThroughSprite := true
+      else
+        MoveThroughSprite :=  not MoveSprite^.solid;
+
+      if (((GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
        (not Textures[GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) or
-       (MoveThroughDoor) then
+       (MoveThroughDoor)) and MoveThroughSprite then
          Game.VPlayer.X += Game.VDirection.X*MoveSpeed;
+
+      {$IFOPT D+}
+      // DEBUG INFO
+      // Hit test sprite
+      if (not MoveThroughSprite) then
+        writeln('Hit sprite! 1UP');
+      {$ENDIF}
 
       MoveDoor := FindDoor(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed));
       if MoveDoor = nil then
@@ -452,23 +464,51 @@ implementation
       else
         MoveThroughDoor := MoveDoor^.Opened;
 
-      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) or //empty
+      MoveSprite := GameMap.FindSprite(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed));
+      if MoveSprite = nil then
+        MoveThroughSprite := true
+      else
+        MoveThroughSprite :=  not MoveSprite^.solid;
+
+      if (((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) or //empty
        (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)]].Solid)) or //non-solid
-       (MoveThroughDoor) then //door
+       (MoveThroughDoor)) and MoveThroughSprite then //door
          Game.VPlayer.Y += Game.VDirection.Y*MoveSpeed;
+
+      {$IFOPT D+}
+      // DEBUG INFO
+      // Hit test sprite
+      if (not MoveThroughSprite) then
+        writeln('Hit sprite! 2UP');
+      {$ENDIF}
     end;
     if keyDown(KEY_DOWN) then
     begin
+      //Door handling
       MoveDoor := FindDoor(Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed), Floor(Game.VPlayer.Y));
       if MoveDoor = nil then
         MoveThroughDoor := false
       else
         MoveThroughDoor := MoveDoor^.Opened;
 
-      if ((GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
+      //Sprite handling
+      MoveSprite := GameMap.FindSprite(Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed), Floor(Game.VPlayer.Y));
+      if MoveSprite = nil then
+        MoveThroughSprite := true
+      else
+        MoveThroughSprite := not MoveSprite^.solid;
+
+      if (((GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
        (not Textures[GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) or
-       (MoveThroughDoor) then
+       (MoveThroughDoor)) and MoveThroughSprite then
          Game.VPlayer.X -= Game.VDirection.X*MoveSpeed;
+
+      {$IFOPT D+}
+      // DEBUG INFO
+      // Hit test sprite
+      if (not MoveThroughSprite) then
+        writeln('Hit sprite! 1Down');
+      {$ENDIF}
 
       MoveDoor := FindDoor(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed));
       if MoveDoor = nil then
@@ -476,10 +516,23 @@ implementation
       else
         MoveThroughDoor := MoveDoor^.Opened;
 
-      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) or
+      MoveSprite := GameMap.FindSprite(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed));
+      if MoveSprite = nil then
+        MoveThroughSprite := true
+      else
+        MoveThroughSprite := not MoveSprite^.solid;
+
+      if (((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) or
        (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)]].Solid)) or
-       (MoveThroughDoor) then
+       (MoveThroughDoor)) and MoveThroughSprite then
          Game.VPlayer.Y -= Game.VDirection.Y*MoveSpeed;
+
+      {$IFOPT D+}
+      // DEBUG INFO
+      // Hit test sprite
+      if (not MoveThroughSprite) then
+        writeln('Hit sprite! 2Down');
+      {$ENDIF}
     end;
     if keyDown(KEY_RIGHT) then
     begin

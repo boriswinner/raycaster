@@ -28,10 +28,10 @@ end
 
 SPRITE 1
 texture testsprite.bmp
-solid false
+solid true
 pickable true
-x 1
-y 6
+x 27
+y 16
 end
 
 MAP
