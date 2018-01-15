@@ -9,6 +9,31 @@ solid true
 transparent false
 end
 
+DEFINE 9 as
+NSTexture floor.bmp
+EWTexture floor.bmp
+FloorTexture bigtexture.bmp
+CeilTexture bigtexture.bmp
+solid false
+transparent false
+end
+
+DEFINE 5 as
+door true
+NSTexture door2.bmp
+EWTexture door2_side.bmp
+solid true
+transparent true
+end
+
+SPRITE 1
+texture testsprite.bmp
+solid false
+pickable true
+x 1
+y 6
+end
+
 MAP
 1212111211
 1000000001
@@ -23,7 +48,7 @@ MAP
 100000000440000001
 100001000000000001
 100000000000000001011211
-100000000000000001010001
+100099999999900001010001
 100000006060000001110101
 100000000000000000000111
 1000000060600000000001

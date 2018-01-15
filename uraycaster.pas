@@ -16,6 +16,7 @@ type
     CPerpWallDist, CWallX: double;
     CMapPos: TPoint;
     CSide: boolean;
+    Sprite: boolean;
   end;
 type
   TRaycaster = record
@@ -44,6 +45,7 @@ type
 var
   Raycaster : TRaycaster;
   Textures  : array[1..10000000] of TTexture; //TODO dynamic loading
+  SpriteTextures: array[1..1000] of TTexture;
   DoorToOpen: TPoint;
   DoorOpened: boolean;
 
@@ -53,6 +55,9 @@ procedure HandleDoors;
 implementation
 
   procedure InitTextures;
+  var
+    b: TBlock;
+    s: TSprite;
   begin
     //TODO Load textures from special list
     //loading manually for now
@@ -60,20 +65,24 @@ implementation
     //Test setting for first block
     //MsgBox(GameMap.Blocks[0].NSTexture);
 
-    with (GameMap.Blocks[0]) do
+    for b in GameMap.Blocks do
     begin
-      Textures[1] := LoadTexture(renderer, NSTexture, EWTexture, transparent, solid);
+      Textures[b.ID] := LoadTexture(renderer, b.NSTexture, b.EWTexture,
+        b.transparent, b.solid);
+    end;
+    for s in GameMap.Sprites do
+    begin
+      SpriteTextures[s.ID] := LoadTexture(renderer, s.texture, true, s.solid);
     end;
 
     // LoadTexture(renderer, 'greystone.bmp', false, true);
     Textures[2] := LoadTexture(renderer, 'colorstone.bmp', false, true);
     Textures[3] := LoadTexture(renderer, 'eagle.bmp', false, true);
     Textures[4] := LoadTexture(renderer, 'reallybig.bmp', false, true);
-    Textures[5] := LoadTexture(renderer, 'door.bmp', 'door2_side.bmp', true, false);
+    //Textures[5] := LoadTexture(renderer, 'door.bmp', 'door2_side.bmp', true, false);
     Textures[6] := LoadTexture(renderer, 'fence.bmp', true, false);
     Textures[7] := LoadTexture(renderer, 'test.bmp', true, false);
     Textures[8] := LoadTexture(renderer, 'redbrick.bmp', false, true);
-    Textures[9] := LoadTexture(renderer, 'bigtexture.bmp', 'reallybig.bmp', false, true);
   end;
 
   //Doing ray casting calculations there.
@@ -83,6 +92,7 @@ implementation
     RayPos, RayDir, DeltaDist, SideDist: TFloatPoint;
     Step: TPoint;
     hit: boolean;
+    CurrSprite: PSprite;
   begin
     // Render stack elements count.
     StackLoad   := 0;
@@ -140,6 +150,35 @@ implementation
       // checking on map borders
       if ((MapPos.x > 0) and (MapPos.x < Length(GameMap.Map)-1) and (MapPos.y > 0) and (MapPos.y < Length(GameMap.Map[MapPos.x])-1)) then
       begin
+        CurrSprite := GameMap.FindSprite(MapPos.x, MapPos.y);
+        if (CurrSprite <> nil) and TextureExists(@SpriteTextures[CurrSprite^.ID]) then
+        begin
+          if (StackLoad < STACK_LOAD_MAX) then
+          begin
+            inc(StackLoad);
+            RenderStack[StackLoad].Sprite := true;
+            //doing calculations for stack elems
+            RenderStack[StackLoad].CMapPos.X := MapPos.X;
+            RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
+            RenderStack[StackLoad].CSide := side;
+
+            // calculating perpWallDist
+            RenderStack[StackLoad].CPerpWallDist := sqrt(
+              power(Game.VPlayer.X - CurrSprite^.x - 0.45*Sign(RayDir.x), 2) +
+              power(Game.VPlayer.Y - CurrSprite^.Y - 0.45*Sign(RayDir.Y), 2)
+            );
+
+            // and WallX too
+            if RenderStack[StackLoad].CSide then
+              RenderStack[StackLoad].CWallX := RayPos.X + ((MapPos.y - RayPos.Y + (1 - Step.y) / 2) / RayDir.Y) * RayDir.X
+            else
+              RenderStack[StackLoad].CWallX := RayPos.Y + ((MapPos.x - RayPos.X + (1 - Step.x) / 2) / RayDir.X) * RayDir.Y;
+
+            RenderStack[StackLoad].CWallX := RenderStack[StackLoad].CWallX - floor(RenderStack[StackLoad].CWallX);
+          end
+          else
+            hit := true;
+        end;
         // if we hit a wall
         if (GameMap.Map[MapPos.x][MapPos.y] > 0) then
         begin
@@ -151,6 +190,7 @@ implementation
             begin
               inc(StackLoad);
 
+              RenderStack[StackLoad].Sprite := false;
               //doing calculations for stack elems
               RenderStack[StackLoad].CMapPos.X := MapPos.X;
               RenderStack[StackLoad].CMapPos.Y := MapPos.Y;
@@ -221,6 +261,7 @@ implementation
     WallColor: TColorRGB;
     LineHeight,DrawStart,drawEnd, TexIndex, i, DrawEndPrev, DrawStartPrev: integer;
     CurrDoor : PDoor;
+    CurrSprite: PSprite;
   begin
     {$IFOPT D+}
     // DEBUG INFO
@@ -251,6 +292,16 @@ implementation
       end
       else
         verLine(AScreenX,DrawStart,DrawEnd,WallColor);
+
+      CurrSprite := GameMap.FindSprite(MapPos.X, MapPos.Y);
+      if CurrSprite <> nil then
+      begin
+        TexIndex := CurrSprite^.ID;
+        if TextureExists(@SpriteTextures[TexIndex]) then
+        begin
+          DrawTexStripe(AScreenX, DrawStart, DrawEnd, WallX, @SpriteTextures[TexIndex], false, perpWallDist);
+        end;
+      end;
     end;
 
     //...and so on to nearest.
@@ -259,17 +310,31 @@ implementation
       LineHeight := floor(Config.ScreenHeight/RenderStack[i].CPerpWallDist);
       DrawStart := floor(-LineHeight / 2 + Config.ScreenHeight / 2);
       DrawEnd := floor(LineHeight / 2 + Config.ScreenHeight / 2);
-      TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
-
-      //just test code for door rendering
-      CurrDoor := FindDoor(RenderStack[i].CMapPos.X, RenderStack[i].CMapPos.Y);
-      if CurrDoor <> nil then
+      if RenderStack[i].Sprite then
       begin
-        DrawEnd := DrawEnd - floor((DrawEnd - DrawStart)*(CurrDoor^.OpenValue));
+        CurrSprite := GameMap.FindSprite(RenderStack[i].CMapPos.X, RenderStack[i].CMapPos.Y);
+        if CurrSprite <> nil then
+        begin
+          TexIndex := CurrSprite^.ID;
+          if TextureExists(@SpriteTextures[TexIndex]) then
+          begin
+            DrawTexStripe(AScreenX, DrawStart, DrawEnd, RenderStack[i].CWallX, @SpriteTextures[TexIndex], false, RenderStack[i].CPerpWallDist);
+          end;
+        end;
+      end
+      else
+      begin
+        TexIndex := GameMap.Map[RenderStack[i].CMapPos.X][RenderStack[i].CMapPos.Y];
+
+        //just test code for door rendering
+        CurrDoor := FindDoor(RenderStack[i].CMapPos.X, RenderStack[i].CMapPos.Y);
+        if CurrDoor <> nil then
+        begin
+          DrawEnd := DrawEnd - floor((DrawEnd - DrawStart)*(CurrDoor^.OpenValue));
+        end;
+
+        DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide, RenderStack[i].CPerpWallDist);
       end;
-
-      DrawTexStripe(AScreenX,DrawStart,DrawEnd,RenderStack[i].CWallX,@Textures[TexIndex],RenderStack[i].CSide, RenderStack[i].CPerpWallDist);
-
       //because we don't have floors and ceils for now
       //and yeah, this is way too shitty
       if (i+1) <= StackLoad then
@@ -354,6 +419,8 @@ implementation
   var
     MoveSpeed,RotSpeed: double;
     OldVDirection,OldVPlane: TFloatPoint;
+    MoveDoor: PDoor;
+    MoveThroughDoor: boolean;
   begin
     MoveSpeed := FrameTime*7;
     RotSpeed := FrameTime*3;
@@ -368,21 +435,51 @@ implementation
     end;
     if keyDown(KEY_UP) then
     begin
+      MoveDoor := FindDoor(Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed), Floor(Game.VPlayer.Y));
+      if MoveDoor = nil then
+        MoveThroughDoor := false
+      else
+        MoveThroughDoor := MoveDoor^.Opened;
+
       if ((GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
-       (not Textures[GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) then
-        Game.VPlayer.X += Game.VDirection.X*MoveSpeed;
-      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) or
-       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)]].Solid)) then
-        Game.VPlayer.Y += Game.VDirection.Y*MoveSpeed;
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X+Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) or
+       (MoveThroughDoor) then
+         Game.VPlayer.X += Game.VDirection.X*MoveSpeed;
+
+      MoveDoor := FindDoor(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed));
+      if MoveDoor = nil then
+        MoveThroughDoor := false
+      else
+        MoveThroughDoor := MoveDoor^.Opened;
+
+      if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)] = 0) or //empty
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y+Game.VDirection.Y*MoveSpeed)]].Solid)) or //non-solid
+       (MoveThroughDoor) then //door
+         Game.VPlayer.Y += Game.VDirection.Y*MoveSpeed;
     end;
     if keyDown(KEY_DOWN) then
     begin
+      MoveDoor := FindDoor(Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed), Floor(Game.VPlayer.Y));
+      if MoveDoor = nil then
+        MoveThroughDoor := false
+      else
+        MoveThroughDoor := MoveDoor^.Opened;
+
       if ((GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)] = 0) or
-       (not Textures[GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) then
-        Game.VPlayer.X -= Game.VDirection.X*MoveSpeed;
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X-Game.VDirection.X*MoveSpeed)][Floor(Game.VPlayer.Y)]].Solid)) or
+       (MoveThroughDoor) then
+         Game.VPlayer.X -= Game.VDirection.X*MoveSpeed;
+
+      MoveDoor := FindDoor(Floor(Game.VPlayer.X), Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed));
+      if MoveDoor = nil then
+        MoveThroughDoor := false
+      else
+        MoveThroughDoor := MoveDoor^.Opened;
+
       if ((GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)] = 0) or
-       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)]].Solid)) then
-        Game.VPlayer.Y -= Game.VDirection.Y*MoveSpeed;
+       (not Textures[GameMap.Map[Floor(Game.VPlayer.X)][Floor(Game.VPlayer.Y-Game.VDirection.Y*MoveSpeed)]].Solid)) or
+       (MoveThroughDoor) then
+         Game.VPlayer.Y -= Game.VDirection.Y*MoveSpeed;
     end;
     if keyDown(KEY_RIGHT) then
     begin

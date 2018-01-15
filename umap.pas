@@ -11,6 +11,8 @@ type
   IntGrid = array of array of integer;
 
   TBlock = record
+    ID: integer;
+    door: boolean;
     NSTexture: string;
     EWTexture: string;
     FloorTexture: string;
@@ -20,14 +22,32 @@ type
     function RegisterVariables: TDictionary;
   end;
 
+  { TSprite }
+
+  TSprite = record
+    ID: integer;
+    texture: string;
+    solid: boolean;
+    pickable: boolean;
+    x, y: integer;
+    function RegisterVariables: TDictionary;
+  end;
+  PSprite = ^TSprite;
+
+{ TMap }
+
 TMap = record
   private
     const MapFileName = 'map.txt';
   public
     Map: IntGrid;
     Blocks: array of TBlock; //block id is its position in the array
+    Sprites: array of TSprite;
     procedure ReadFromFile;
     function DefineBlock (var AFile: TextFile): TBlock;
+    function DefineSprite(var AFile: TextFile): TSprite;
+    function FindBlock(TextureID: integer): integer;
+    function FindSprite(x,y:uint32): PSprite;
     function ReadMap(var AFile: TextFile): IntGrid;
 end;
 
@@ -39,8 +59,22 @@ function FindDoor(x,y:UInt32) : PDoor;
 
 implementation
 
+{ TSprite }
+
+function TSprite.RegisterVariables: TDictionary;
+begin
+  Result.AddToDict('ID', @ID, 0);
+  Result.AddToDict('texture', @texture, 1);
+  Result.AddToDict('solid',@solid,2);
+  Result.AddToDict('pickable',@pickable,2);
+  Result.AddToDict('x', @x, 0);
+  Result.AddToDict('y', @y, 0);
+end;
+
 function TBlock.RegisterVariables: TDictionary;
 begin
+  Result.AddToDict('ID', @ID, 0);
+  Result.AddToDict('door', @door, 2);
   Result.AddToDict('NSTexture',@NSTexture,1);
   Result.AddToDict('EWTexture',@EWTexture,1);
   Result.AddToDict('FloorTexture',@FloorTexture,1);
@@ -50,6 +84,27 @@ begin
 end;
 function TMap.DefineBlock (var AFile: TextFile): TBlock;
 var
+  tDict: TDictionary;
+  tname, tvalue,t: string;
+begin
+  tdict := Result.RegisterVariables;
+  PBoolean((tDict.ReturnValue('door')))^ := false;
+  readln(AFile,t);
+  while (t <> 'end') do
+  begin
+    tname := (ExtractWord(1,t,[' ']));
+    tvalue := (ExtractWord(2,t,[' ']));
+    case tDict.ReturnValueType(tname) of
+    0: PInteger((tDict.ReturnValue(tname)))^ := StrToInt(tvalue);
+    1: PString((tDict.ReturnValue(tname)))^ := tvalue;
+    2: PBoolean((tDict.ReturnValue(tname)))^ := StrToBool(tvalue);
+    end;
+    readln(AFile,t);
+  end;
+end;
+
+function TMap.DefineSprite(var AFile: TextFile): TSprite;
+  var
   tDict: TDictionary;
   tname, tvalue,t: string;
 begin
@@ -68,6 +123,29 @@ begin
   end;
 end;
 
+function TMap.FindBlock(TextureID: integer): integer;
+begin
+  for Result := Low(Blocks) to High(Blocks) do
+  begin
+    if Blocks[Result].ID = TextureID then
+      exit;
+  end;
+end;
+
+function TMap.FindSprite(x, y: uint32): PSprite;
+var i: integer;
+begin
+  Result := nil;
+  for i := Low(Sprites) to High(Sprites) do
+  begin
+    if (Sprites[i].x = x) and (Sprites[i].y = y) then
+    begin
+      Result := @Sprites[i];
+      Break;
+    end;
+  end;
+end;
+
 function TMap.ReadMap(var AFile: TextFile): IntGrid;
 var
   s: string;
@@ -81,9 +159,7 @@ begin
     for j := low(s) to high(s) do
     begin
       Result[high(Result),j-1] := StrToIntDef(s[j],0);
-
-      //FIXME
-      if Result[high(Result),j-1] = 5 then //Well, the new map format still in progress...
+      if Blocks[FindBlock(Result[high(Result),j-1])].door then
       begin
         setlength(Doors, length(Doors)+1);
         with Doors[high(Doors)] do
@@ -94,7 +170,6 @@ begin
           y := j-1;
         end;
       end;
-      //EOFFIXME
     end;
   end;
 end;
@@ -116,10 +191,17 @@ begin
         begin
           setlength(Blocks,length(Blocks)+1);
           Blocks[high(Blocks)] := DefineBlock(fin);
+          Blocks[high(Blocks)].ID := StrToInt(ExtractWord(2,s,[' ']));
+        end;
+      'SPRITE':
+        begin
+          SetLength(Sprites, Length(Sprites) + 1);
+          Sprites[high(Sprites)] := DefineSprite(fin);
+          Sprites[high(Sprites)].ID := StrToInt(ExtractWord(2,s,[' ']));
         end;
       'MAP':
         begin
-          Map :=  ReadMap(fin);
+          Map := ReadMap(fin);
         end;
     end;
   end;

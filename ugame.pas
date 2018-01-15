@@ -5,7 +5,7 @@ unit ugame;
 interface
 
 uses
-  Classes, SysUtils, Math, GraphMath, usound;
+  Classes, SysUtils, Math, GraphMath;
 //GraphMath only for TFLoatPoint, better to write own type
 
 type
