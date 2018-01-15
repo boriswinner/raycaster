@@ -164,8 +164,8 @@ implementation
 
             // calculating perpWallDist
             RenderStack[StackLoad].CPerpWallDist := sqrt(
-              power(Game.VPlayer.X - CurrSprite^.x - 0.45*Sign(RayDir.x), 2) +
-              power(Game.VPlayer.Y - CurrSprite^.Y - 0.45*Sign(RayDir.Y), 2)
+              power(Game.VPlayer.X - CurrSprite^.x - 0.45, 2) +
+              power(Game.VPlayer.Y - CurrSprite^.Y - 0.45, 2)
             );
 
             // and WallX too
